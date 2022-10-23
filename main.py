@@ -4,16 +4,19 @@ Load and parse Excel data
 from logging import INFO
 from logging import basicConfig
 from logging import getLogger
+from typing import Optional
+from typing import Union
 
 from arrow import now
 from matplotlib.pyplot import show
 from pandas import DataFrame
 from pandas import read_excel
 from seaborn import lineplot
+from seaborn import set_style
 
 
-def read_excel_dataframe(io: str, header: int) -> DataFrame:
-    result_df = read_excel(io=io, engine='openpyxl', header=header)
+def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
+    result_df = read_excel(engine='openpyxl', header=header, io=io, usecols=usecols)
     return result_df
 
 
@@ -73,6 +76,10 @@ COLUMNS = ['Index', 'Variant', 'Region, subregion, country or area *', 'Notes',
            'Net Migration Rate (per 1,000 population)']
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
+SEABORN_STYLE = 'darkgrid'
+USECOLS = ['Region, subregion, country or area *',
+           'Year', 'Total Population, as of 1 January (thousands)',
+           'Total Population, as of 1 July (thousands)']
 
 if __name__ == '__main__':
     TIME_START = now()
@@ -80,13 +87,13 @@ if __name__ == '__main__':
     basicConfig(format='%(asctime)s : %(name)s : %(levelname)s : %(message)s', level=INFO, )
 
     data_file = DATA_FOLDER + INPUT_FILE
-    df = read_excel_dataframe(io=data_file, header=16)
-    LOGGER.info(df.shape)
-    LOGGER.info(df.columns)
+    df = read_excel_dataframe(io=data_file, header=16, usecols=USECOLS)
+    LOGGER.info('loaded %d rows from %s', len(df), data_file)
 
     world_df = df[df['Region, subregion, country or area *'] == 'WORLD']
+    set_style(style=SEABORN_STYLE)
     lineplot(data=world_df, x='Year', y='Total Population, as of 1 January (thousands)')
+    lineplot(data=world_df, x='Year', y='Total Population, as of 1 July (thousands)')
     show()
-    LOGGER.info(world_df.shape)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
