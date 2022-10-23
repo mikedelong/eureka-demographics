@@ -11,7 +11,7 @@ from arrow import now
 from matplotlib.pyplot import show
 from pandas import DataFrame
 from pandas import read_excel
-from seaborn import lineplot
+from seaborn import scatterplot
 from seaborn import set_style
 
 
@@ -85,6 +85,7 @@ if __name__ == '__main__':
     TIME_START = now()
     LOGGER = getLogger(__name__, )
     basicConfig(format='%(asctime)s : %(name)s : %(levelname)s : %(message)s', level=INFO, )
+    LOGGER.info('started')
 
     data_file = DATA_FOLDER + INPUT_FILE
     df = read_excel_dataframe(io=data_file, header=16, usecols=USECOLS)
@@ -92,8 +93,8 @@ if __name__ == '__main__':
 
     world_df = df[df['Region, subregion, country or area *'] == 'WORLD']
     set_style(style=SEABORN_STYLE)
-    lineplot(data=world_df, x='Year', y='Total Population, as of 1 January (thousands)')
-    lineplot(data=world_df, x='Year', y='Total Population, as of 1 July (thousands)')
+    scatterplot(data=world_df, x='Year', y='Total Population, as of 1 January (thousands)')
+    scatterplot(data=world_df, x='Year', y='Total Population, as of 1 July (thousands)')
     show()
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
