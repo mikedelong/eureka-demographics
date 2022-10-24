@@ -8,11 +8,13 @@ from typing import Optional
 from typing import Union
 
 from arrow import now
-from matplotlib.pyplot import show
+from matplotlib.pyplot import savefig
 from pandas import DataFrame
 from pandas import read_excel
 from seaborn import scatterplot
 from seaborn import set_style
+
+from datetime import date
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -91,10 +93,17 @@ if __name__ == '__main__':
     df = read_excel_dataframe(io=data_file, header=16, usecols=USECOLS)
     LOGGER.info('loaded %d rows from %s', len(df), data_file)
 
-    world_df = df[df['Region, subregion, country or area *'] == 'WORLD']
+    # filter for the data we want and make a copy because we need to add columns
+    world_df = df[df['Region, subregion, country or area *'] == 'WORLD'].copy(deep=True)
+    world_df['January'] = world_df['Year'].apply(lambda x: date(year=int(x), month=1, day=1))
+    world_df['July'] = world_df['Year'].apply(lambda x: date(year=int(x), month=7, day=1))
+    values = dict(zip(world_df['January'], world_df['Total Population, as of 1 January (thousands)'])) | dict(
+        zip(world_df['July'], world_df['Total Population, as of 1 July (thousands)']))
+    values_df = DataFrame(data={'date': list(values.keys()), 'population': list(values.values())}).sort_values(
+        by='date')
+
     set_style(style=SEABORN_STYLE)
-    scatterplot(data=world_df, x='Year', y='Total Population, as of 1 January (thousands)')
-    scatterplot(data=world_df, x='Year', y='Total Population, as of 1 July (thousands)')
-    show()
+    scatterplot(data=values_df, x='date', y='population')
+    savefig(fname='./population.png', format='png')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
