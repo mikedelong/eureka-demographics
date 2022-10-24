@@ -79,9 +79,10 @@ COLUMNS = ['Index', 'Variant', 'Region, subregion, country or area *', 'Notes',
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 SEABORN_STYLE = 'darkgrid'
-USECOLS = ['Region, subregion, country or area *',
+USECOLS = ['Region, subregion, country or area *', 'Type',
            'Year', 'Total Population, as of 1 January (thousands)',
-           'Total Population, as of 1 July (thousands)']
+           'Total Population, as of 1 July (thousands)',
+           'Total Deaths (thousands)']
 
 if __name__ == '__main__':
     TIME_START = now()
@@ -105,5 +106,9 @@ if __name__ == '__main__':
     set_style(style=SEABORN_STYLE)
     scatterplot(data=values_df, x='date', y='population')
     savefig(fname='./population.png', format='png')
+
+    # todo make a stacked bar chart of total death data by country
+    regions = df['Region, subregion, country or area *'].unique().tolist()
+    countries = df[df['Type'] == 'Country/Area']['Region, subregion, country or area *'].unique().tolist()
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
