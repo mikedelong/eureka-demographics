@@ -96,15 +96,18 @@ if __name__ == '__main__':
 
     # filter for the data we want and make a copy because we need to add columns
     world_df = df[df['Region, subregion, country or area *'] == 'WORLD'].copy(deep=True)
+    # add dates for the two total population values
     world_df['January'] = world_df['Year'].apply(lambda x: date(year=int(x), month=1, day=1))
     world_df['July'] = world_df['Year'].apply(lambda x: date(year=int(x), month=7, day=1))
-    values = dict(zip(world_df['January'], world_df['Total Population, as of 1 January (thousands)'])) | dict(
+    # combine the two sets of date/population values
+    population = dict(zip(world_df['January'], world_df['Total Population, as of 1 January (thousands)'])) | dict(
         zip(world_df['July'], world_df['Total Population, as of 1 July (thousands)']))
-    values_df = DataFrame(data={'date': list(values.keys()), 'population': list(values.values())}).sort_values(
-        by='date')
+    # build the population DataFrame
+    population_df = DataFrame(
+        data={'date': list(population.keys()), 'population': list(population.values())}).sort_values(by='date')
 
     set_style(style=SEABORN_STYLE)
-    scatterplot(data=values_df, x='date', y='population')
+    scatterplot(data=population_df, x='date', y='population')
     savefig(fname='./population.png', format='png')
 
     # todo make a stacked bar chart of total death data by country
