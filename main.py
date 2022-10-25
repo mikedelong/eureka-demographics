@@ -15,7 +15,6 @@ from pandas import DataFrame
 from pandas import read_excel
 from seaborn import scatterplot
 from seaborn import set_style
-from seaborn import barplot
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -78,14 +77,18 @@ COLUMNS = ['Index', 'Variant', 'Region, subregion, country or area *', 'Notes',
            'Net Number of Migrants (thousands)',
            'Net Migration Rate (per 1,000 population)']
 DATA_FOLDER = './data/'
-DO_STACKED_DEATH_CHART = False
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 SAVE_WORLD_DATA = False
 SEABORN_STYLE = 'darkgrid'
-USECOLS = ['Region, subregion, country or area *', 'Type',
-           'Year', 'Total Population, as of 1 January (thousands)',
-           'Total Population, as of 1 July (thousands)',
-           'Total Deaths (thousands)']
+USECOLS = [
+    'Crude Death Rate (deaths per 1,000 population)',
+    'Region, subregion, country or area *',
+    'Total Deaths (thousands)',
+    'Total Population, as of 1 January (thousands)',
+    'Total Population, as of 1 July (thousands)',
+    'Type',
+    'Year',
+]
 WORLD_DATA_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_WORLD.xlsx'
 
 if __name__ == '__main__':
@@ -105,7 +108,8 @@ if __name__ == '__main__':
         LOGGER.info('wrote %d rows to %s', len(world_df), WORLD_DATA_FILE)
     else:
         # if we don't load the whole data file above then we need to load the world-only data
-        world_df = read_excel_dataframe(io=WORLD_DATA_FILE, header=0, usecols=USECOLS)
+        world_file = DATA_FOLDER + WORLD_DATA_FILE
+        world_df = read_excel_dataframe(io=world_file, header=0, usecols=USECOLS)
         LOGGER.info('loaded %d rows from %s', len(world_df), WORLD_DATA_FILE)
 
     # add dates for the two total population values
@@ -134,17 +138,5 @@ if __name__ == '__main__':
     axes_scatter_death = scatterplot(ax=axes_death, data=death_df, x='Year', y='Total Deaths')
     savefig(fname='./death.png', format='png')
     LOGGER.info('saved death plot')
-
-    # make a stacked bar chart of total death data by country
-    if DO_STACKED_DEATH_CHART:  # this doesn't work as written due to a MemoryError
-        regions = df['Region, subregion, country or area *'].unique().tolist()
-        countries = df[df['Type'] == 'Country/Area']['Region, subregion, country or area *'].unique().tolist()
-        columns = ['Region, subregion, country or area *', 'Year', 'Total Deaths (thousands)']
-        death_df = df[df['Type'] == 'Country/Area'][columns]
-        death_df['Year'] = death_df['Year'].astype(int)
-        death_df.set_index('Region, subregion, country or area *').plot(kind='bar', stacked=True)
-        figure_death, axes_death = subplots()
-        axes_barplot = barplot(ax=axes_death, data=death_df, hue=columns[0], x=columns[1], y=columns[2], )
-        savefig(fname='./stacked_death.png', format='png')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
