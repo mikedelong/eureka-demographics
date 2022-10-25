@@ -80,11 +80,13 @@ COLUMNS = ['Index', 'Variant', 'Region, subregion, country or area *', 'Notes',
 DATA_FOLDER = './data/'
 DO_STACKED_DEATH_CHART = False
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
+SAVE_WORLD_DATA = False
 SEABORN_STYLE = 'darkgrid'
 USECOLS = ['Region, subregion, country or area *', 'Type',
            'Year', 'Total Population, as of 1 January (thousands)',
            'Total Population, as of 1 July (thousands)',
            'Total Deaths (thousands)']
+WORLD_DATA_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_WORLD.xlsx'
 
 if __name__ == '__main__':
     TIME_START = now()
@@ -92,12 +94,20 @@ if __name__ == '__main__':
     basicConfig(format='%(asctime)s : %(name)s : %(levelname)s : %(message)s', level=INFO, )
     LOGGER.info('started')
 
-    data_file = DATA_FOLDER + INPUT_FILE
-    df = read_excel_dataframe(io=data_file, header=16, usecols=USECOLS)
-    LOGGER.info('loaded %d rows from %s', len(df), data_file)
+    if SAVE_WORLD_DATA:
+        data_file = DATA_FOLDER + INPUT_FILE
+        df = read_excel_dataframe(io=data_file, header=16, usecols=USECOLS)
+        LOGGER.info('loaded %d rows from %s', len(df), data_file)
+        # filter for the data we want and make a copy because we need to add columns
+        world_df = df[df['Region, subregion, country or area *'] == 'WORLD'].copy(deep=True)
+        world_file = DATA_FOLDER + WORLD_DATA_FILE
+        world_df.to_excel(world_file)
+        LOGGER.info('wrote %d rows to %s', len(world_df), WORLD_DATA_FILE)
+    else:
+        # if we don't load the whole data file above then we need to load the world-only data
+        world_df = read_excel_dataframe(io=WORLD_DATA_FILE, header=0, usecols=USECOLS)
+        LOGGER.info('loaded %d rows from %s', len(world_df), WORLD_DATA_FILE)
 
-    # filter for the data we want and make a copy because we need to add columns
-    world_df = df[df['Region, subregion, country or area *'] == 'WORLD'].copy(deep=True)
     # add dates for the two total population values
     world_df['January'] = world_df['Year'].apply(lambda x: date(year=int(x), month=1, day=1))
     world_df['July'] = world_df['Year'].apply(lambda x: date(year=int(x), month=7, day=1))
