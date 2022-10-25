@@ -139,4 +139,13 @@ if __name__ == '__main__':
     savefig(fname='./death.png', format='png')
     LOGGER.info('saved death plot')
 
+    # plot the global crude death rate
+    crude_death_df = world_df[['Year', 'Crude Death Rate (deaths per 1,000 population)']].copy(deep=True)
+    crude_death_df['Year'] = crude_death_df['Year'].astype(int)
+    crude_death_df.rename(columns={'Crude Death Rate (deaths per 1,000 population)': 'Death Rate'}, inplace=True)
+    figure_crude_death, axes_crude_death = subplots()
+    axes_scatter_crude_death = scatterplot(ax=axes_crude_death, data=crude_death_df, x='Year', y='Death Rate')
+    savefig(fname='./crude_death.png', format='png')
+    LOGGER.info('saved crude death plot')
+
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
