@@ -1,6 +1,7 @@
 """
 Load and parse Excel data
 """
+from datetime import date
 from logging import INFO
 from logging import basicConfig
 from logging import getLogger
@@ -9,12 +10,12 @@ from typing import Union
 
 from arrow import now
 from matplotlib.pyplot import savefig
+from matplotlib.pyplot import subplots
 from pandas import DataFrame
 from pandas import read_excel
 from seaborn import scatterplot
 from seaborn import set_style
-
-from datetime import date
+from seaborn import barplot
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -77,6 +78,7 @@ COLUMNS = ['Index', 'Variant', 'Region, subregion, country or area *', 'Notes',
            'Net Number of Migrants (thousands)',
            'Net Migration Rate (per 1,000 population)']
 DATA_FOLDER = './data/'
+DO_STACKED_DEATH_CHART = False
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 SEABORN_STYLE = 'darkgrid'
 USECOLS = ['Region, subregion, country or area *', 'Type',
@@ -104,14 +106,35 @@ if __name__ == '__main__':
         zip(world_df['July'], world_df['Total Population, as of 1 July (thousands)']))
     # build the population DataFrame
     population_df = DataFrame(
-        data={'date': list(population.keys()), 'population': list(population.values())}).sort_values(by='date')
+        data={'date': list(population.keys()), 'population': list(population.values())}).sort_values(
+        by='date').reset_index(drop=True)
+    population_df['population'] = 1000 * population_df['population']
 
     set_style(style=SEABORN_STYLE)
-    scatterplot(data=population_df, x='date', y='population')
+    figure_population, axes_population = subplots()
+    axes_scatter_population = scatterplot(ax=axes_population, data=population_df, x='date', y='population')
     savefig(fname='./population.png', format='png')
+    LOGGER.info('saved population plot')
 
-    # todo make a stacked bar chart of total death data by country
-    regions = df['Region, subregion, country or area *'].unique().tolist()
-    countries = df[df['Type'] == 'Country/Area']['Region, subregion, country or area *'].unique().tolist()
+    # plot the global annual death count
+    death_df = world_df[['Year', 'Total Deaths (thousands)']].copy(deep=True)
+    death_df['Year'] = death_df['Year'].astype(int)
+    death_df['Total Deaths'] = 1000 * death_df['Total Deaths (thousands)'].astype(int)
+    figure_death, axes_death = subplots()
+    axes_scatter_death = scatterplot(ax=axes_death, data=death_df, x='Year', y='Total Deaths')
+    savefig(fname='./death.png', format='png')
+    LOGGER.info('saved death plot')
+
+    # make a stacked bar chart of total death data by country
+    if DO_STACKED_DEATH_CHART:  # this doesn't work as written due to a MemoryError
+        regions = df['Region, subregion, country or area *'].unique().tolist()
+        countries = df[df['Type'] == 'Country/Area']['Region, subregion, country or area *'].unique().tolist()
+        columns = ['Region, subregion, country or area *', 'Year', 'Total Deaths (thousands)']
+        death_df = df[df['Type'] == 'Country/Area'][columns]
+        death_df['Year'] = death_df['Year'].astype(int)
+        death_df.set_index('Region, subregion, country or area *').plot(kind='bar', stacked=True)
+        figure_death, axes_death = subplots()
+        axes_barplot = barplot(ax=axes_death, data=death_df, hue=columns[0], x=columns[1], y=columns[2], )
+        savefig(fname='./stacked_death.png', format='png')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
