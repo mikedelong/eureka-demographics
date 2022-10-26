@@ -11,6 +11,10 @@ from arrow import now
 from pandas import DataFrame
 from pandas import read_excel
 from seaborn import set_style
+from seaborn import FacetGrid
+from seaborn import scatterplot
+from matplotlib.pyplot import savefig
+from matplotlib.pyplot import subplots
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -18,9 +22,10 @@ def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int
     return result_df
 
 
+CRUDE_DATA_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_CRUDE_DEATH.xlsx'
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
-SAVE_CRUDE_DATA = True
+SAVE_CRUDE_DATA = False
 SEABORN_STYLE = 'darkgrid'
 USECOLS = [
     'Crude Death Rate (deaths per 1,000 population)',
@@ -28,7 +33,6 @@ USECOLS = [
     'Type',
     'Year',
 ]
-CRUDE_DATA_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_CRUDE_DEATH.xlsx'
 
 if __name__ == '__main__':
     TIME_START = now()
@@ -51,5 +55,10 @@ if __name__ == '__main__':
         LOGGER.info('loaded %d rows from %s', len(crude_df), crude_data_file)
 
     set_style(style=SEABORN_STYLE)
+    crude_df.rename(columns={'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+                             'Region, subregion, country or area *': 'Country'}, inplace=True)
+    grid = FacetGrid(col='Country', col_wrap=3, data=crude_df, sharex=True, )
+    result = grid.map_dataframe(func=scatterplot, x='Crude Death')
+    savefig(fname='./crude_death_grid.png', format='png')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
