@@ -103,18 +103,21 @@ if __name__ == '__main__':
         LOGGER.info('loaded %d rows from %s', len(df), data_file)
         # filter for the data we want and make a copy because we need to add columns
         world_df = df[df['Region, subregion, country or area *'] == 'WORLD'].copy(deep=True)
+        # add dates for the two total population values
+        world_df['January'] = world_df['Year'].apply(lambda x: date(year=int(x), month=1, day=1))
+        world_df['July'] = world_df['Year'].apply(lambda x: date(year=int(x), month=7, day=1))
         world_file = DATA_FOLDER + WORLD_DATA_FILE
         world_df.to_excel(world_file)
         LOGGER.info('wrote %d rows to %s', len(world_df), WORLD_DATA_FILE)
     else:
         # if we don't load the whole data file above then we need to load the world-only data
         world_file = DATA_FOLDER + WORLD_DATA_FILE
-        world_df = read_excel_dataframe(io=world_file, header=0, usecols=USECOLS)
+        usecols = USECOLS + ['January', 'July']
+        world_df = read_excel_dataframe(io=world_file, header=0, usecols=usecols)
         LOGGER.info('loaded %d rows from %s', len(world_df), WORLD_DATA_FILE)
 
-    # add dates for the two total population values
-    world_df['January'] = world_df['Year'].apply(lambda x: date(year=int(x), month=1, day=1))
-    world_df['July'] = world_df['Year'].apply(lambda x: date(year=int(x), month=7, day=1))
+    set_style(style=SEABORN_STYLE)
+
     # combine the two sets of date/population values
     population = dict(zip(world_df['January'], world_df['Total Population, as of 1 January (thousands)'])) | dict(
         zip(world_df['July'], world_df['Total Population, as of 1 July (thousands)']))
@@ -123,8 +126,6 @@ if __name__ == '__main__':
         data={'date': list(population.keys()), 'population': list(population.values())}).sort_values(
         by='date').reset_index(drop=True)
     population_df['population'] = 1000 * population_df['population']
-
-    set_style(style=SEABORN_STYLE)
     figure_population, axes_population = subplots()
     axes_scatter_population = scatterplot(ax=axes_population, data=population_df, x='date', y='population')
     savefig(fname='./population.png', format='png')
