@@ -8,13 +8,14 @@ from typing import Optional
 from typing import Union
 
 from arrow import now
-from pandas import DataFrame
-from pandas import read_excel
-from seaborn import set_style
-from seaborn import FacetGrid
-from seaborn import scatterplot
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
+from pandas import DataFrame
+from pandas import read_excel
+from seaborn import scatterplot
+from seaborn import set_style
+from numpy import array
+from numpy import dot
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -24,6 +25,7 @@ def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int
 
 CRUDE_DATA_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_CRUDE_DEATH.xlsx'
 DATA_FOLDER = './data/'
+DO_ALL_GRAPHS = False
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 SAVE_CRUDE_DATA = False
 SEABORN_STYLE = 'darkgrid'
@@ -57,8 +59,24 @@ if __name__ == '__main__':
     set_style(style=SEABORN_STYLE)
     crude_df.rename(columns={'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
                              'Region, subregion, country or area *': 'Country'}, inplace=True)
-    grid = FacetGrid(col='Country', col_wrap=3, data=crude_df, sharex=True, )
-    result = grid.map_dataframe(func=scatterplot, x='Crude Death')
-    savefig(fname='./crude_death_grid.png', format='png')
+
+    world_ = crude_df[crude_df['Country'] == 'WORLD']['Crude Death'].values
+    dot_world = dot(a=world_, b=world_)
+    LOGGER.info(dot_world)
+    result = dict()
+    for country in crude_df['Country'].unique():
+        try:
+            value = dot(a=crude_df[crude_df['Country'] == country]['Crude Death'].values, b=world_)/dot_world
+            LOGGER.info(country)
+            result[country] = value
+        except TypeError:
+            LOGGER.warning(country)
+
+    if DO_ALL_GRAPHS:
+        for index, country in enumerate(crude_df['Country'].unique()):
+            figure, axes = subplots()
+            LOGGER.info(country)
+            plot_result = scatterplot(ax=axes, data=crude_df[crude_df['Country'] == country], x='Year', y='Crude Death')
+            savefig(fname='./plot/{}_crude_death.png'.format(country), format='png')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
