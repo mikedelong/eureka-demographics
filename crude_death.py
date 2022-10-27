@@ -63,7 +63,7 @@ if __name__ == '__main__':
     world_ = crude_df[crude_df['Country'] == 'WORLD']['Crude Death'].values
     dot_world = dot(a=world_, b=world_)
     result = {country: dot(a=crude_df[crude_df['Country'] == country]['Crude Death'].values, b=world_) / dot_world
-              for country in crude_df['Country'].unique() if country not in {'Holy See'}
+              for country in crude_df['Country'].unique() if country not in {'Holy See', 'WORLD'}
               }
 
     if DO_ALL_GRAPHS:
