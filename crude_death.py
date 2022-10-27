@@ -10,12 +10,11 @@ from typing import Union
 from arrow import now
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
+from numpy import dot
 from pandas import DataFrame
 from pandas import read_excel
 from seaborn import scatterplot
 from seaborn import set_style
-from numpy import array
-from numpy import dot
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -62,14 +61,20 @@ if __name__ == '__main__':
 
     world_ = crude_df[crude_df['Country'] == 'WORLD']['Crude Death'].values
     dot_world = dot(a=world_, b=world_)
-    result = {country: dot(a=crude_df[crude_df['Country'] == country]['Crude Death'].values, b=world_) / dot_world
-              for country in crude_df['Country'].unique() if country not in {'Holy See', 'WORLD'}
-              }
+    correlations = {country: dot(a=crude_df[crude_df['Country'] == country]['Crude Death'].values, b=world_) / dot_world
+                    for country in crude_df['Country'].unique() if country not in {'Holy See', 'WORLD'}}
+    correlations_df = DataFrame(data= {'country': list(correlations.keys()),
+                                       'correlation': list(correlations.values())}).sort_values(by='correlation')
+    # todo break this up into multiple readable subplots
+    figure_correlations, axes_correlations = subplots(figsize=(9, 16))
+    plot_correlations = scatterplot(data=correlations_df.iloc[0:50], y='country', x='correlation')
+    savefig(fname='./crude_death_correlations.png', format='png')
 
     if DO_ALL_GRAPHS:
         for index, country in enumerate(crude_df['Country'].unique()):
             figure, axes = subplots()
             LOGGER.info(country)
+            # todo plot these against the world aggregate
             plot_result = scatterplot(ax=axes, data=crude_df[crude_df['Country'] == country], x='Year', y='Crude Death')
             savefig(fname='./plot/{}_crude_death.png'.format(country), format='png')
 
