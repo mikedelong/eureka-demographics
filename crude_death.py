@@ -62,15 +62,9 @@ if __name__ == '__main__':
 
     world_ = crude_df[crude_df['Country'] == 'WORLD']['Crude Death'].values
     dot_world = dot(a=world_, b=world_)
-    LOGGER.info(dot_world)
-    result = dict()
-    for country in crude_df['Country'].unique():
-        try:
-            value = dot(a=crude_df[crude_df['Country'] == country]['Crude Death'].values, b=world_)/dot_world
-            LOGGER.info(country)
-            result[country] = value
-        except TypeError:
-            LOGGER.warning(country)
+    result = {country: dot(a=crude_df[crude_df['Country'] == country]['Crude Death'].values, b=world_) / dot_world
+              for country in crude_df['Country'].unique() if country not in {'Holy See'}
+              }
 
     if DO_ALL_GRAPHS:
         for index, country in enumerate(crude_df['Country'].unique()):
