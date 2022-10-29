@@ -34,7 +34,18 @@ if __name__ == '__main__':
 
     fig, ax = subplots(figsize=(16, 9))
     ax.stackplot(df['Year'].values, df['Whites'].values, df['Blacks'].values, labels=['White', 'Black'])
-    ax.legend(loc='upper left')
+    ax.legend(loc='upper right')
     savefig(fname='./umkc_lynchings.png', format='png')
+    del fig
+
+    df['cumulative_white'] = df['Whites'].cumsum()
+    df['cumulative_black'] = df['Blacks'].cumsum()
+    fig, ax = subplots(figsize=(16, 9))
+    ax.stackplot(df['Year'].values,
+                 df['cumulative_black'].values,
+                 df['cumulative_white'].values,
+                 labels=['Black (cumulative)', 'White (cumulative)', ])
+    ax.legend(loc='upper left')
+    savefig(fname='./umkc_lynchings_cumsum.png', format='png')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
