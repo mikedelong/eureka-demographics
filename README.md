@@ -10,3 +10,4 @@ https://population.un.org/wpp/Download/Files/1_Indicators%20(Standard)/EXCEL_FIL
 
 Cause of death data came from Our World In Data: https://ourworldindata.org/causes-of-death
 
+Lynchings data from: http://law2.umkc.edu/faculty/projects/ftrials/shipp/lynchingyear.html
