@@ -46,13 +46,26 @@ if __name__ == '__main__':
 
     df['cumulative_white'] = df['Whites'].cumsum()
     df['cumulative_black'] = df['Blacks'].cumsum()
-    fig, ax = subplots(figsize=FIGSIZE)
-    ax.stackplot(df['Year'].values,
-                 df['cumulative_black'].values,
-                 df['cumulative_white'].values,
-                 labels=['Black (cumulative)', 'White (cumulative)', ])
-    ax.legend(loc='upper left')
+    fig_cumulative, ax_cumulative = subplots(figsize=FIGSIZE)
+    ax_cumulative.stackplot(df['Year'].values,
+                            df['cumulative_black'].values,
+                            df['cumulative_white'].values,
+                            labels=['Black (cumulative)', 'White (cumulative)', ])
+    ax_cumulative.legend(loc='upper left')
     title('source: {}'.format(URL))
     savefig(fname=OUTPUT_FOLDER + 'umkc_lynchings_cumsum.png', format='png')
+    del fig_cumulative
+
+    window = 5
+    df['moving_white'] = df['Whites'].rolling(window=window).mean()
+    df['moving_black'] = df['Blacks'].rolling(window=window).mean()
+    fig_rolling, ax_rolling = subplots(figsize=FIGSIZE)
+    ax_rolling.stackplot(df['Year'].values,
+                         df['moving_black'].values,
+                         df['moving_white'].values,
+                         labels=['Black ({}y moving avg)'.format(window), 'White ({}y moving avg)'.format(window), ])
+    ax_rolling.legend(loc='upper left')
+    title('source: {}'.format(URL))
+    savefig(fname=OUTPUT_FOLDER + 'umkc_lynchings_rolling.png', format='png')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
