@@ -11,7 +11,9 @@ from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
 from matplotlib.pyplot import title
 from pandas import DataFrame
+from pandas import concat
 from pandas import read_html
+from seaborn import lineplot
 
 
 def get_html_dataframe(url: str, skiprows: Optional[int]) -> list[DataFrame]:
@@ -43,6 +45,18 @@ if __name__ == '__main__':
     title('source: {}'.format(URL))
     savefig(fname=OUTPUT_FOLDER + 'umkc_lynchings.png', format='png')
     del fig
+
+    # using a seaborn lineplot and reshaping the data produces the result we actually want
+    fig_lineplot, ax_lineplot = subplots(figsize=FIGSIZE)
+    white_df = df[['Year', 'Whites']].rename(columns={'Whites': 'deaths', 'Year': 'year'})
+    white_df['race'] = 'white'
+    black_df = df[['Year', 'Blacks']].rename(columns={'Blacks': 'deaths', 'Year': 'year'})
+    black_df['race'] = 'black'
+    merged_df = concat([black_df, white_df], ignore_index=True)
+    lineplot_result = lineplot(data=merged_df, x='year', y='deaths', hue='race')
+    ax_lineplot.legend(loc='upper right')
+    title('source: {}'.format(URL))
+    savefig(fname=OUTPUT_FOLDER + 'umkc_lynchings_lineplot.png', format='png')
 
     df['cumulative_white'] = df['Whites'].cumsum()
     df['cumulative_black'] = df['Blacks'].cumsum()
