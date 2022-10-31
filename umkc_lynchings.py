@@ -29,9 +29,9 @@ def reshape_helper(input_df: DataFrame, y_column: str, y_column_name: str, value
 
 def reshape(input_df: DataFrame, x_column: str, y_columns: list[str], y_column_name: str,
             value_column_name: str) -> DataFrame:
-    result = [reshape_helper(input_df=input_df[[x_column, y_column]], y_column=y_column, y_column_name=y_column_name,
-                             value_column_name=value_column_name) for y_column in y_columns]
-    result_df = concat(result, ignore_index=True)
+    result_df = concat([reshape_helper(input_df=input_df[[x_column, y_column]], y_column=y_column,
+                                       y_column_name=y_column_name, value_column_name=value_column_name) for y_column in
+                        y_columns], ignore_index=True)
     return result_df
 
 
