@@ -14,6 +14,7 @@ from pandas import DataFrame
 from pandas import concat
 from pandas import read_html
 from seaborn import lineplot
+from matplotlib.pyplot import close as figure_close
 
 
 def get_html_dataframe(url: str, skiprows: Optional[int]) -> list[DataFrame]:
@@ -57,7 +58,7 @@ if __name__ == '__main__':
     ax.legend(loc='upper right')
     title('source: {}'.format(URL))
     savefig(fname=OUTPUT_FOLDER + 'umkc_lynchings.png', format='png')
-    del fig
+    figure_close(fig=fig)
 
     # using a seaborn lineplot and reshaping the data produces the result we actually want
     fig_lineplot, ax_lineplot = subplots(figsize=FIGSIZE)
@@ -68,6 +69,7 @@ if __name__ == '__main__':
     ax_lineplot.legend(loc='upper right')
     title('source: {}'.format(URL))
     savefig(fname=OUTPUT_FOLDER + 'umkc_lynchings_lineplot.png', format='png')
+    figure_close(fig=fig_lineplot)
 
     df['cumulative_white'] = df['Whites'].cumsum()
     df['cumulative_black'] = df['Blacks'].cumsum()
@@ -79,7 +81,7 @@ if __name__ == '__main__':
     ax_cumulative.legend(loc='upper left')
     title('source: {}'.format(URL))
     savefig(fname=OUTPUT_FOLDER + 'umkc_lynchings_cumsum.png', format='png')
-    del fig_cumulative
+    figure_close(fig=fig_cumulative)
 
     window = 5
     df['moving_white'] = df['Whites'].rolling(window=window).mean()
@@ -92,5 +94,6 @@ if __name__ == '__main__':
     ax_rolling.legend(loc='upper left')
     title('source: {}'.format(URL))
     savefig(fname=OUTPUT_FOLDER + 'umkc_lynchings_rolling.png', format='png')
+    figure_close(fig=fig_rolling)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
