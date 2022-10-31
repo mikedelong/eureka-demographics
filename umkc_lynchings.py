@@ -21,6 +21,20 @@ def get_html_dataframe(url: str, skiprows: Optional[int]) -> list[DataFrame]:
     return result_df
 
 
+def reshape_helper(input_df: DataFrame, y_column: str, y_column_name: str, value_column_name: str) -> DataFrame:
+    output_df = input_df.rename(columns={y_column: value_column_name})
+    output_df[y_column_name] = y_column
+    return output_df
+
+
+def reshape(input_df: DataFrame, x_column: str, y_columns: list[str], y_column_name: str,
+            value_column_name: str) -> DataFrame:
+    result = [reshape_helper(input_df=input_df[[x_column, y_column]], y_column=y_column, y_column_name=y_column_name,
+                             value_column_name=value_column_name) for y_column in y_columns]
+    result_df = concat(result, ignore_index=True)
+    return result_df
+
+
 FIGSIZE = (16, 8)
 OUTPUT_FOLDER = './plot_lynching/'
 URL = 'http://law2.umkc.edu/faculty/projects/ftrials/shipp/lynchingyear.html'
@@ -48,12 +62,10 @@ if __name__ == '__main__':
 
     # using a seaborn lineplot and reshaping the data produces the result we actually want
     fig_lineplot, ax_lineplot = subplots(figsize=FIGSIZE)
-    white_df = df[['Year', 'Whites']].rename(columns={'Whites': 'deaths', 'Year': 'year'})
-    white_df['race'] = 'white'
-    black_df = df[['Year', 'Blacks']].rename(columns={'Blacks': 'deaths', 'Year': 'year'})
-    black_df['race'] = 'black'
-    merged_df = concat([black_df, white_df], ignore_index=True)
-    lineplot_result = lineplot(data=merged_df, x='year', y='deaths', hue='race')
+    lineplot_df = df[['Year', 'Whites', 'Blacks']].rename(columns={'Year': 'year'})
+    reshaped_df = reshape(input_df=lineplot_df, x_column='year', y_columns=['Whites', 'Blacks'],
+                          y_column_name='race', value_column_name='deaths')
+    lineplot_result = lineplot(data=reshaped_df, x='year', y='deaths', hue='race')
     ax_lineplot.legend(loc='upper right')
     title('source: {}'.format(URL))
     savefig(fname=OUTPUT_FOLDER + 'umkc_lynchings_lineplot.png', format='png')
