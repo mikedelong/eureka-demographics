@@ -7,31 +7,19 @@ from logging import getLogger
 from typing import Optional
 
 from arrow import now
+from matplotlib.pyplot import close as figure_close
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
 from matplotlib.pyplot import title
 from pandas import DataFrame
-from pandas import concat
 from pandas import read_html
 from seaborn import lineplot
-from matplotlib.pyplot import close as figure_close
+
+from common import reshape
 
 
 def get_html_dataframe(url: str, skiprows: Optional[int]) -> list[DataFrame]:
     result_df = read_html(io=url, skiprows=skiprows)
-    return result_df
-
-
-def reshape(input_df: DataFrame, x_column: str, y_columns: list[str], y_column_name: str,
-            value_column_name: str) -> DataFrame:
-    def reshape_helper(input_df_: DataFrame, y_column: str, y_column_name_: str, value_column_name_: str) -> DataFrame:
-        output_df = input_df_.rename(columns={y_column: value_column_name_})
-        output_df[y_column_name_] = y_column
-        return output_df
-
-    result_df = concat([reshape_helper(input_df_=input_df[[x_column, y_column]], y_column=y_column,
-                                       y_column_name_=y_column_name, value_column_name_=value_column_name) for y_column
-                        in y_columns], ignore_index=True)
     return result_df
 
 
