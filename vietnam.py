@@ -11,6 +11,9 @@ from arrow import now
 from pandas import DataFrame
 from pandas import read_csv
 
+from seaborn import histplot
+from matplotlib.pyplot import savefig
+
 
 def get_csv_dataframe(filepath_or_buffer: str, names: list[str]) -> DataFrame:
     result_df = read_csv(filepath_or_buffer=filepath_or_buffer, sep='|', names=names)
@@ -48,5 +51,10 @@ if __name__ == '__main__':
     for column in date_columns:
         df[column] = df[column].astype(int)
         df[column] = df[column].apply(lambda x: date(year=x // 10000, month=(x // 100) % 100, day=x % 100))
+
+    LOGGER.info(df['Incident or Death Date'].min())
+    LOGGER.info(df['Incident or Death Date'].max())
+    result = histplot(data=df, x='Incident or Death Date')
+    savefig(format='png', fname='./vietnam.png')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
