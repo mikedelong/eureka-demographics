@@ -14,10 +14,12 @@ from matplotlib.pyplot import subplots
 from pandas import DataFrame
 from pandas import read_csv
 from seaborn import histplot
+from matplotlib.pyplot import title
+
 
 
 def get_csv_dataframe(filepath_or_buffer: str, names: list[str]) -> DataFrame:
-    result_df = read_csv(filepath_or_buffer=filepath_or_buffer, sep='|', names=names)
+    result_df = read_csv(filepath_or_buffer=filepath_or_buffer, low_memory=False, names=names, sep='|', )
     return result_df
 
 
@@ -55,7 +57,7 @@ if __name__ == '__main__':
         df[column] = df[column].astype(int)
         df[column] = df[column].apply(lambda x: date(year=x // 10000, month=(x // 100) % 100, day=x % 100))
 
-    figure, axes = subplots()
+    figure, axes = subplots(figsize=(16, 9))
     # filter out extreme data
     min_date = date(year=1963, month=1, day=1)
     max_date = date(year=1974, month=1, day=1)
@@ -63,6 +65,7 @@ if __name__ == '__main__':
     bins = 12 * (max_date.year - min_date.year)
     result = histplot(ax=axes, bins=bins, data=df[(min_date < df[column]) & (df[column] < max_date)], discrete=False,
                       element='bars', kde=False, stat='count', x=column, )
+    title('source: {}'.format(URL))
     savefig(format='png', fname='./vietnam.png')
     close(fig=figure)
 
