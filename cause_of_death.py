@@ -12,6 +12,7 @@ from matplotlib.pyplot import subplots
 from matplotlib.pyplot import title
 from pandas import DataFrame
 from pandas import read_csv
+from plotly.express import line
 from seaborn import FacetGrid
 from seaborn import lineplot
 from seaborn import move_legend
@@ -56,7 +57,6 @@ COLUMNS = ['Entity', 'Code', 'Year', 'Number of executions (Amnesty Internationa
            'Deaths - Digestive diseases - Sex: Both - Age: All Ages (Number)',
            'Deaths - Fire, heat, and hot substances - Sex: Both - Age: All Ages (Number)',
            'Deaths - Acute hepatitis - Sex: Both - Age: All Ages (Number)']
-
 DATA_FOLDER = './data/'
 FORMAT = 'png'
 INPUT_FILE = 'annual-number-of-deaths-by-cause.csv'
@@ -95,8 +95,16 @@ if __name__ == '__main__':
         new_column = new_column.replace('Deaths - ', '')
         usa_df.rename(inplace=True, columns={column: new_column})
     usa_df.rename(inplace=True, columns={'Number of executions (Amnesty International)': 'Executions'})
-    y_columns = [column for column in list(usa_df) if column != 'Year']
-    usa_lineplot_df = reshape(input_df=usa_df, x_column='Year', y_columns=y_columns,
+
+    # let's drop a couple of great big columns before we proceed
+    for column in usa_df.columns:
+        usa_df[column] = usa_df[column].astype(int)
+    # order the columns by their total deaths, most to least
+    total_deaths = {column: usa_df[column].sum() for column in usa_df.columns if column != 'Year'}
+    total_deaths = sorted([(key, value) for key, value in total_deaths.items()], key=lambda x: x[1], reverse=True)
+    total_deaths = [item[0] for item in total_deaths]
+    usa_df = usa_df[['Year'] + total_deaths]
+    usa_lineplot_df = reshape(input_df=usa_df, x_column='Year', y_columns=total_deaths,
                               y_column_name='Cause', value_column_name='Deaths')
     fig_lineplot, ax_lineplot = subplots(figsize=(16, 8), tight_layout=True)
     lineplot_result = lineplot(data=usa_lineplot_df, x='Year', y='Deaths', hue='Cause')
@@ -113,5 +121,9 @@ if __name__ == '__main__':
     facet_grid.map_dataframe(func=lineplot, x='Year', y='Deaths', )
     savefig(format=FORMAT, fname=PLOT_FOLDER + 'usa_cause_of_death_facetgrid.png')
     figure_close(fig=fig_facetgrid)
+
+    # now try again but use plotly this time
+    figure_plotly = line(data_frame=usa_lineplot_df, x='Year', y='Deaths', color='Cause')
+    figure_plotly.write_html(PLOT_FOLDER + 'usa_cause_of_death_lineplot.html', )
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
