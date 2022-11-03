@@ -1,5 +1,5 @@
 """
-Load and parse Excel data
+Load and parse CSV data representing US cause of death data
 """
 from logging import INFO
 from logging import basicConfig
@@ -9,10 +9,10 @@ from arrow import now
 from matplotlib.pyplot import close as figure_close
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
-from matplotlib.pyplot import tight_layout
 from matplotlib.pyplot import title
 from pandas import DataFrame
 from pandas import read_csv
+from seaborn import FacetGrid
 from seaborn import lineplot
 from seaborn import move_legend
 
@@ -58,8 +58,8 @@ COLUMNS = ['Entity', 'Code', 'Year', 'Number of executions (Amnesty Internationa
            'Deaths - Acute hepatitis - Sex: Both - Age: All Ages (Number)']
 
 DATA_FOLDER = './data/'
+FORMAT = 'png'
 INPUT_FILE = 'annual-number-of-deaths-by-cause.csv'
-OUTPUT_FOLDER = './'
 PLOT_FOLDER = './plot_cause_of_death/'
 URL = 'https://ourworldindata.org/causes-of-death'
 
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     figure_causes, axes_causes = subplots(figsize=(9, 16))
     usa_df.plot.area(ax=axes_causes)
     axes_causes.legend(loc='upper center', fancybox=True)
-    savefig(fname=PLOT_FOLDER + 'usa_cause_of_death.png', format='png')
+    savefig(fname=PLOT_FOLDER + 'usa_cause_of_death.png', format=FORMAT)
     figure_close(fig=figure_causes)
 
     usa_df = df[df['Code'] == 'USA'].drop(columns=['Entity', 'Code'])
@@ -98,13 +98,20 @@ if __name__ == '__main__':
     y_columns = [column for column in list(usa_df) if column != 'Year']
     usa_lineplot_df = reshape(input_df=usa_df, x_column='Year', y_columns=y_columns,
                               y_column_name='Cause', value_column_name='Deaths')
-    fig_lineplot, ax_lineplot = subplots(figsize=(16, 8))
+    fig_lineplot, ax_lineplot = subplots(figsize=(16, 8), tight_layout=True)
     lineplot_result = lineplot(data=usa_lineplot_df, x='Year', y='Deaths', hue='Cause')
     ax_lineplot.invert_yaxis()
     move_legend(obj=lineplot_result, loc='upper left', bbox_to_anchor=(1, 1))
     title('source: {}'.format(URL))
-    tight_layout()
-    savefig(fname=PLOT_FOLDER + 'usa_cause_of_death_lineplot.png', format='png')
+    savefig(fname=PLOT_FOLDER + 'usa_cause_of_death_lineplot.png', format=FORMAT)
     figure_close(fig=fig_lineplot)
+
+    # now try a FacetGrid of lineplots
+    fig_facetgrid, ax_facetgrid = subplots(figsize=(16, 8), tight_layout=True)
+    # how to get the subplots to put 0 at the bottom of the Y axis and not the top?
+    facet_grid = FacetGrid(col='Cause', col_wrap=4, data=usa_lineplot_df, sharex=True, sharey=True, )
+    facet_grid.map_dataframe(func=lineplot, x='Year', y='Deaths', )
+    savefig(format=FORMAT, fname=PLOT_FOLDER + 'usa_cause_of_death_facetgrid.png')
+    figure_close(fig=fig_facetgrid)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
