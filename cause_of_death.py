@@ -6,16 +6,9 @@ from logging import basicConfig
 from logging import getLogger
 
 from arrow import now
-from matplotlib.pyplot import close as figure_close
-from matplotlib.pyplot import savefig
-from matplotlib.pyplot import subplots
-from matplotlib.pyplot import title
 from pandas import DataFrame
 from pandas import read_csv
 from plotly.express import line
-from seaborn import FacetGrid
-from seaborn import lineplot
-from seaborn import move_legend
 
 from common import reshape
 
@@ -58,7 +51,6 @@ COLUMNS = ['Entity', 'Code', 'Year', 'Number of executions (Amnesty Internationa
            'Deaths - Fire, heat, and hot substances - Sex: Both - Age: All Ages (Number)',
            'Deaths - Acute hepatitis - Sex: Both - Age: All Ages (Number)']
 DATA_FOLDER = './data/'
-FORMAT = 'png'
 INPUT_FILE = 'annual-number-of-deaths-by-cause.csv'
 PLOT_FOLDER = './plot_cause_of_death/'
 URL = 'https://ourworldindata.org/causes-of-death'
@@ -82,12 +74,6 @@ if __name__ == '__main__':
         new_column = new_column.replace('Deaths - ', '')
         usa_df.rename(inplace=True, columns={column: new_column})
 
-    figure_causes, axes_causes = subplots(figsize=(9, 16))
-    usa_df.plot.area(ax=axes_causes)
-    axes_causes.legend(loc='upper center', fancybox=True)
-    savefig(fname=PLOT_FOLDER + 'usa_cause_of_death.png', format=FORMAT)
-    figure_close(fig=figure_causes)
-
     usa_df = df[df['Code'] == 'USA'].drop(columns=['Entity', 'Code'])
     usa_df = usa_df.sort_values(by=['Year']).fillna(value=0)
     for column in list(usa_df):
@@ -106,23 +92,7 @@ if __name__ == '__main__':
     usa_df = usa_df[['Year'] + total_deaths]
     usa_lineplot_df = reshape(input_df=usa_df, x_column='Year', y_columns=total_deaths,
                               y_column_name='Cause', value_column_name='Deaths')
-    fig_lineplot, ax_lineplot = subplots(figsize=(16, 8), tight_layout=True)
-    lineplot_result = lineplot(data=usa_lineplot_df, x='Year', y='Deaths', hue='Cause')
-    ax_lineplot.invert_yaxis()
-    move_legend(obj=lineplot_result, loc='upper left', bbox_to_anchor=(1, 1))
-    title('source: {}'.format(URL))
-    savefig(fname=PLOT_FOLDER + 'usa_cause_of_death_lineplot.png', format=FORMAT)
-    figure_close(fig=fig_lineplot)
 
-    # now try a FacetGrid of lineplots
-    fig_facetgrid, ax_facetgrid = subplots(figsize=(16, 8), tight_layout=True)
-    # how to get the subplots to put 0 at the bottom of the Y axis and not the top?
-    facet_grid = FacetGrid(col='Cause', col_wrap=4, data=usa_lineplot_df, sharex=True, sharey=True, )
-    facet_grid.map_dataframe(func=lineplot, x='Year', y='Deaths', )
-    savefig(format=FORMAT, fname=PLOT_FOLDER + 'usa_cause_of_death_facetgrid.png')
-    figure_close(fig=fig_facetgrid)
-
-    # now try again but use plotly this time
     figure_plotly = line(data_frame=usa_lineplot_df, x='Year', y='Deaths', color='Cause')
     figure_plotly.write_html(PLOT_FOLDER + 'usa_cause_of_death_lineplot.html', )
 
