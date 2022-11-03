@@ -6,10 +6,17 @@ from logging import basicConfig
 from logging import getLogger
 
 from arrow import now
+from matplotlib.pyplot import close as figure_close
+from matplotlib.pyplot import savefig
+from matplotlib.pyplot import subplots
+from matplotlib.pyplot import tight_layout
+from matplotlib.pyplot import title
 from pandas import DataFrame
 from pandas import read_csv
-from matplotlib.pyplot import style
-from matplotlib.pyplot import savefig
+from seaborn import lineplot
+from seaborn import move_legend
+
+from common import reshape
 
 
 def read_csv_dataframe(filepath_or_buffer: str) -> DataFrame:
@@ -52,6 +59,9 @@ COLUMNS = ['Entity', 'Code', 'Year', 'Number of executions (Amnesty Internationa
 
 DATA_FOLDER = './data/'
 INPUT_FILE = 'annual-number-of-deaths-by-cause.csv'
+OUTPUT_FOLDER = './'
+PLOT_FOLDER = './plot_cause_of_death/'
+URL = 'https://ourworldindata.org/causes-of-death'
 
 if __name__ == '__main__':
     TIME_START = now()
@@ -71,8 +81,30 @@ if __name__ == '__main__':
         new_column = column.replace(' - Sex: Both - Age: All Ages (Number)', '')
         new_column = new_column.replace('Deaths - ', '')
         usa_df.rename(inplace=True, columns={column: new_column})
-    style.use('seaborn')
-    usa_df.plot.area()
-    savefig(fname='./cause_of_death.png', format='png')
+
+    figure_causes, axes_causes = subplots(figsize=(9, 16))
+    usa_df.plot.area(ax=axes_causes)
+    axes_causes.legend(loc='upper center', fancybox=True)
+    savefig(fname=PLOT_FOLDER + 'usa_cause_of_death.png', format='png')
+    figure_close(fig=figure_causes)
+
+    usa_df = df[df['Code'] == 'USA'].drop(columns=['Entity', 'Code'])
+    usa_df = usa_df.sort_values(by=['Year']).fillna(value=0)
+    for column in list(usa_df):
+        new_column = column.replace(' - Sex: Both - Age: All Ages (Number)', '')
+        new_column = new_column.replace('Deaths - ', '')
+        usa_df.rename(inplace=True, columns={column: new_column})
+    usa_df.rename(inplace=True, columns={'Number of executions (Amnesty International)': 'Executions'})
+    y_columns = [column for column in list(usa_df) if column != 'Year']
+    usa_lineplot_df = reshape(input_df=usa_df, x_column='Year', y_columns=y_columns,
+                              y_column_name='Cause', value_column_name='Deaths')
+    fig_lineplot, ax_lineplot = subplots(figsize=(16, 8))
+    lineplot_result = lineplot(data=usa_lineplot_df, x='Year', y='Deaths', hue='Cause')
+    ax_lineplot.invert_yaxis()
+    move_legend(obj=lineplot_result, loc='upper left', bbox_to_anchor=(1, 1))
+    title('source: {}'.format(URL))
+    tight_layout()
+    savefig(fname=PLOT_FOLDER + 'usa_cause_of_death_lineplot.png', format='png')
+    figure_close(fig=fig_lineplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
