@@ -54,12 +54,13 @@ if __name__ == '__main__':
     first_df['Source'] = 'UMKC'
     second_df = hal_df
     second_df['Source'] = 'HAL'
-    aggregate_df = concat([first_df, second_df])
-    figure, axes = subplots(figsize=FIGSIZE)
-    result = barplot(ax=axes, data=aggregate_df, x='Year', y='Deaths', hue='Source')
-    axes.legend(loc='upper right')
+    aggregate_df = concat([first_df, second_df], ignore_index=True)
+
+    figure_barplot, axes_barplot = subplots(figsize=FIGSIZE)
+    result_barplot = barplot(ax=axes_barplot, data=aggregate_df, x='Year', y='Deaths', hue='Source')
+    axes_barplot.legend(loc='upper right')
     xticks(rotation=90)
-    savefig(format='png', fname=OUTPUT_FOLDER + 'aggregate_lynchings.png')
-    close(fig=figure)
+    savefig(format='png', fname=OUTPUT_FOLDER + 'aggregate_lynchings_barplot.png')
+    close(fig=figure_barplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
