@@ -4,6 +4,7 @@ Load and parse Excel data
 from logging import INFO
 from logging import basicConfig
 from logging import getLogger
+from os.path import exists
 from typing import Optional
 from typing import Union
 
@@ -17,7 +18,6 @@ from pandas import read_excel
 from seaborn import lineplot
 from seaborn import scatterplot
 from seaborn import set_style
-from os.path import exists
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -26,7 +26,7 @@ def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int
 
 
 COUNTRIES = ['Afghanistan', 'Albania', 'China', 'Ethiopia', 'Ireland', 'Russian Federation', 'Rwanda', 'Somalia',
-                    'United States of America', 'Viet Nam', ]
+             'United States of America', 'Viet Nam', ]
 CRUDE_DATA_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_CRUDE_DEATH.xlsx'
 DATA_FOLDER = './data/'
 DO_ALL_GRAPHS = False
@@ -74,10 +74,12 @@ if __name__ == '__main__':
     close(fig=figure_correlations)
 
     # graph a country against the baseline
-    for country in COUNTRIES:
+    for country in crude_df['Country'].unique():
         fname = OUTPUT_FOLDER + '{}-vs-{}.png'.format(country, 'World')
         if exists(fname):
-            LOGGER.info('not creating %s because it already exists.', fname)
+            LOGGER.warning('not creating %s because it already exists.', fname)
+        elif country == 'Holy See':
+            LOGGER.warning('skipping %s because its data is broken or something', country)
         else:
             LOGGER.info('plotting crude rate %s vs world', country)
             graph_df = crude_df[(crude_df['Country'] == 'WORLD') | (crude_df['Country'] == country)]
