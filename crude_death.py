@@ -8,13 +8,16 @@ from typing import Optional
 from typing import Union
 
 from arrow import now
+from matplotlib.pyplot import close
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
 from numpy import dot
 from pandas import DataFrame
 from pandas import read_excel
+from seaborn import lineplot
 from seaborn import scatterplot
 from seaborn import set_style
+from os.path import exists
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -22,18 +25,17 @@ def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int
     return result_df
 
 
+COUNTRIES = ['Afghanistan', 'Albania', 'China', 'Ethiopia', 'Ireland', 'Russian Federation', 'Rwanda', 'Somalia',
+                    'United States of America', 'Viet Nam', ]
 CRUDE_DATA_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_CRUDE_DEATH.xlsx'
 DATA_FOLDER = './data/'
 DO_ALL_GRAPHS = False
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
+OUTPUT_FOLDER = './plot_crude/'
 SAVE_CRUDE_DATA = False
 SEABORN_STYLE = 'darkgrid'
 USECOLS = [
-    'Crude Death Rate (deaths per 1,000 population)',
-    'Region, subregion, country or area *',
-    'Type',
-    'Year',
-]
+    'Crude Death Rate (deaths per 1,000 population)', 'Region, subregion, country or area *', 'Type', 'Year', ]
 
 if __name__ == '__main__':
     TIME_START = now()
@@ -55,7 +57,6 @@ if __name__ == '__main__':
         crude_df = read_excel_dataframe(io=crude_data_file, header=0, usecols=None)
         LOGGER.info('loaded %d rows from %s', len(crude_df), crude_data_file)
 
-    set_style(style=SEABORN_STYLE)
     crude_df.rename(columns={'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
                              'Region, subregion, country or area *': 'Country'}, inplace=True)
 
@@ -63,12 +64,27 @@ if __name__ == '__main__':
     dot_world = dot(a=world_, b=world_)
     correlations = {country: dot(a=crude_df[crude_df['Country'] == country]['Crude Death'].values, b=world_) / dot_world
                     for country in crude_df['Country'].unique() if country not in {'Holy See', 'WORLD'}}
-    correlations_df = DataFrame(data= {'country': list(correlations.keys()),
-                                       'correlation': list(correlations.values())}).sort_values(by='correlation')
+    correlations_df = DataFrame(data={'country': list(correlations.keys()),
+                                      'correlation': list(correlations.values())}).sort_values(by='correlation')
     # todo break this up into multiple readable subplots
+    set_style(style=SEABORN_STYLE)
     figure_correlations, axes_correlations = subplots(figsize=(9, 16))
     plot_correlations = scatterplot(data=correlations_df.iloc[0:50], y='country', x='correlation')
-    savefig(fname='./crude_death_correlations.png', format='png')
+    savefig(fname=OUTPUT_FOLDER + 'crude_death_correlations.png', format='png')
+    close(fig=figure_correlations)
+
+    # graph a country against the baseline
+    for country in COUNTRIES:
+        fname = OUTPUT_FOLDER + '{}-vs-{}.png'.format(country, 'World')
+        if exists(fname):
+            LOGGER.info('not creating %s because it already exists.', fname)
+        else:
+            LOGGER.info('plotting crude rate %s vs world', country)
+            graph_df = crude_df[(crude_df['Country'] == 'WORLD') | (crude_df['Country'] == country)]
+            figure_graph, axes_graph = subplots(figsize=(9, 16))
+            plot_result = lineplot(axes=axes_graph, data=graph_df, x='Year', y='Crude Death', hue='Country')
+            savefig(format='png', fname=fname, )
+            close(fig=figure_graph)
 
     if DO_ALL_GRAPHS:
         for index, country in enumerate(crude_df['Country'].unique()):
@@ -77,5 +93,6 @@ if __name__ == '__main__':
             # todo plot these against the world aggregate
             plot_result = scatterplot(ax=axes, data=crude_df[crude_df['Country'] == country], x='Year', y='Crude Death')
             savefig(fname='./plot/{}_crude_death.png'.format(country), format='png')
+            close(fig=figure)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
