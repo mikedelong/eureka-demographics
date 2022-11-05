@@ -4,6 +4,7 @@ Aggregate lynching data from two sources
 from logging import INFO
 from logging import basicConfig
 from logging import getLogger
+from pathlib import Path
 from typing import Optional
 
 from arrow import now
@@ -15,8 +16,8 @@ from pandas import DataFrame
 from pandas import concat
 from pandas import read_excel
 from pandas import read_html
-from seaborn import barplot
 from plotly.express import bar
+from seaborn import barplot
 
 
 def get_excel_dataframe(io: str) -> DataFrame:
@@ -29,6 +30,7 @@ def get_html_dataframe(url: str, skiprows: Optional[int]) -> list[DataFrame]:
     return result_df
 
 
+DATA_FOLDER = './data/HAL/'
 FIGSIZE = (16, 9)
 HAL_FILE = './data/HAL/HAL.XLS'
 OUTPUT_FOLDER = './plot_lynching/'
@@ -39,6 +41,10 @@ if __name__ == '__main__':
     LOGGER = getLogger(__name__, )
     basicConfig(format='%(asctime)s : %(name)s : %(levelname)s : %(message)s', level=INFO, )
     LOGGER.info('started')
+
+    for folder in [DATA_FOLDER, OUTPUT_FOLDER]:
+        LOGGER.info('creating folder %s if it does not exist', folder)
+        Path(folder).mkdir(parents=True, exist_ok=True)
 
     umkc_df = get_html_dataframe(url=UMKC_URL, skiprows=3)
     umkc_df = umkc_df[0].dropna().iloc[0:87]
