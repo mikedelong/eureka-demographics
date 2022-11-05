@@ -16,6 +16,7 @@ from pandas import concat
 from pandas import read_excel
 from pandas import read_html
 from seaborn import barplot
+from plotly.express import bar
 
 
 def get_excel_dataframe(io: str) -> DataFrame:
@@ -56,11 +57,16 @@ if __name__ == '__main__':
     second_df['Source'] = 'HAL'
     aggregate_df = concat([first_df, second_df], ignore_index=True)
 
+    # seaborn version
     figure_barplot, axes_barplot = subplots(figsize=FIGSIZE)
-    result_barplot = barplot(ax=axes_barplot, data=aggregate_df, x='Year', y='Deaths', hue='Source')
+    result_barplot = barplot(ax=axes_barplot, data=aggregate_df, hue='Source', x='Year', y='Deaths', )
     axes_barplot.legend(loc='upper right')
     xticks(rotation=90)
     savefig(format='png', fname=OUTPUT_FOLDER + 'aggregate_lynchings_barplot.png')
     close(fig=figure_barplot)
+
+    # plotly version
+    plotly_bar = bar(barmode='group', color='Source', data_frame=aggregate_df, x='Year', y='Deaths', )
+    plotly_bar.write_html(OUTPUT_FOLDER + 'aggregate_lynchings_bar.html', )
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
