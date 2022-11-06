@@ -4,3 +4,4 @@ numpy~=1.23.3
 plotly~=5.9.0
 lxml~=4.9.1
 xlrd~=2.0.1
+openpyxl~=3.0.10
