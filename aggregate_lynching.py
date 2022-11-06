@@ -18,7 +18,8 @@ from pandas import read_excel
 from pandas import read_html
 from plotly.express import bar
 from seaborn import barplot
-
+from plotly.io import to_html
+from markdown2 import markdown
 
 def get_excel_dataframe(io: str) -> DataFrame:
     result_df = read_excel(io=io)
@@ -74,5 +75,18 @@ if __name__ == '__main__':
     # plotly version
     plotly_bar = bar(barmode='group', color='Source', data_frame=aggregate_df, x='Year', y='Deaths', )
     plotly_bar.write_html(OUTPUT_FOLDER + 'aggregate_lynchings_bar.html', )
+
+    div = to_html(fig=plotly_bar, full_html=False)
+    md_input = ['# Lynching data from two sources \n' + \
+        'Here is the preamble text.',
+                      'And here is the footer text.']
+
+    html_result = [markdown(text=item) for item in md_input]
+
+    with open(file=OUTPUT_FOLDER + 'markdown_text_bar.html', mode='w') as output_fp:
+        output_fp.write(
+            ' '.join([html_result[0], div, html_result[1]])
+        )
+
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
