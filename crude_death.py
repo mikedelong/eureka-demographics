@@ -5,6 +5,7 @@ from logging import INFO
 from logging import basicConfig
 from logging import getLogger
 from os.path import exists
+from pathlib import Path
 from typing import Optional
 from typing import Union
 
@@ -43,6 +44,12 @@ if __name__ == '__main__':
     basicConfig(format='%(asctime)s : %(name)s : %(levelname)s : %(message)s', level=INFO, )
     LOGGER.info('started')
 
+    for folder in [DATA_FOLDER, OUTPUT_FOLDER]:
+        LOGGER.info('creating folder %s if it does not exist', folder)
+        Path(folder).mkdir(parents=True, exist_ok=True)
+
+    # todo download original file if it ddoes not exist
+
     crude_data_file = DATA_FOLDER + CRUDE_DATA_FILE
     if SAVE_CRUDE_DATA:
         data_file = DATA_FOLDER + INPUT_FILE
@@ -80,13 +87,16 @@ if __name__ == '__main__':
             LOGGER.warning('not creating %s because it already exists.', fname)
         elif country == 'Holy See':
             LOGGER.warning('skipping %s because its data is broken or something', country)
+        elif country == 'WORLD':
+            LOGGER.warning('skipping %s because it is redundant', country)
         else:
-            LOGGER.info('plotting crude rate %s vs world', country)
+            # todo add a plot with a regression fit line?
+            LOGGER.info('line plotting crude rate %s vs world', country)
             graph_df = crude_df[(crude_df['Country'] == 'WORLD') | (crude_df['Country'] == country)]
-            figure_graph, axes_graph = subplots(figsize=(9, 16))
-            plot_result = lineplot(axes=axes_graph, data=graph_df, x='Year', y='Crude Death', hue='Country')
+            figure_lineplot, axes_lineplot = subplots(figsize=(9, 16))
+            lineplot_result = lineplot(ax=axes_lineplot, data=graph_df, x='Year', y='Crude Death', hue='Country')
             savefig(format='png', fname=fname, )
-            close(fig=figure_graph)
+            close(fig=figure_lineplot)
 
     if DO_ALL_GRAPHS:
         for index, country in enumerate(crude_df['Country'].unique()):
