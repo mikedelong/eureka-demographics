@@ -5,6 +5,7 @@ from datetime import date
 from logging import INFO
 from logging import basicConfig
 from logging import getLogger
+from pathlib import Path
 from typing import Optional
 from typing import Union
 
@@ -13,7 +14,6 @@ from pandas import DataFrame
 from pandas import read_excel
 from plotly.express import scatter
 from plotly.io import to_html
-from pathlib import Path
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -46,7 +46,13 @@ if __name__ == '__main__':
         LOGGER.info('creating folder %s if it does not exist', folder)
         Path(folder).mkdir(parents=True, exist_ok=True)
 
-    if SAVE_WORLD_DATA:
+    world_file = DATA_FOLDER + WORLD_DATA_FILE
+    if Path(world_file).exists():
+        # if we don't load the whole data file above then we need to load the world-only data
+        usecols = USECOLS + ['January', 'July']
+        world_df = read_excel_dataframe(io=world_file, header=0, usecols=usecols)
+        LOGGER.info('loaded %d rows from %s', len(world_df), WORLD_DATA_FILE)
+    else:
         data_file = DATA_FOLDER + INPUT_FILE
         df = read_excel_dataframe(io=data_file, header=16, usecols=USECOLS)
         LOGGER.info('loaded %d rows from %s', len(df), data_file)
@@ -58,12 +64,6 @@ if __name__ == '__main__':
         world_file = DATA_FOLDER + WORLD_DATA_FILE
         world_df.to_excel(world_file)
         LOGGER.info('wrote %d rows to %s', len(world_df), WORLD_DATA_FILE)
-    else:
-        # if we don't load the whole data file above then we need to load the world-only data
-        world_file = DATA_FOLDER + WORLD_DATA_FILE
-        usecols = USECOLS + ['January', 'July']
-        world_df = read_excel_dataframe(io=world_file, header=0, usecols=usecols)
-        LOGGER.info('loaded %d rows from %s', len(world_df), WORLD_DATA_FILE)
 
     # combine the two sets of date/population values
     population = dict(zip(world_df['January'], world_df['Total Population, as of 1 January (thousands)'])) | dict(
