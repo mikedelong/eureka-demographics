@@ -25,6 +25,7 @@ DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 OUTPUT_FOLDER = './divs/'
 SAVE_WORLD_DATA = False
+URL = 'https://population.un.org/wpp/Download/Standard/MostUsed/'
 USECOLS = [
     'Crude Death Rate (deaths per 1,000 population)',
     'Region, subregion, country or area *',
@@ -54,8 +55,12 @@ if __name__ == '__main__':
         LOGGER.info('loaded %d rows from %s', len(world_df), WORLD_DATA_FILE)
     else:
         data_file = DATA_FOLDER + INPUT_FILE
-        df = read_excel_dataframe(io=data_file, header=16, usecols=USECOLS)
-        LOGGER.info('loaded %d rows from %s', len(df), data_file)
+        if not Path(data_file).exists():
+            df = read_excel_dataframe(io=URL + INPUT_FILE, header=16, usecols=USECOLS)
+            LOGGER.info('loaded %d rows from %s %s', len(df), URL, INPUT_FILE)
+        else:
+            df = read_excel_dataframe(io=data_file, header=16, usecols=USECOLS)
+            LOGGER.info('loaded %d rows from %s', len(df), data_file)
         # filter for the data we want and make a copy because we need to add columns
         world_df = df[df['Region, subregion, country or area *'] == 'WORLD'].copy(deep=True)
         # add dates for the two total population values
