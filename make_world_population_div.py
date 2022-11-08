@@ -12,6 +12,7 @@ from typing import Union
 from arrow import now
 from pandas import DataFrame
 from pandas import read_excel
+from pandas import to_datetime
 from plotly.express import scatter
 from plotly.io import to_html
 
@@ -75,11 +76,28 @@ if __name__ == '__main__':
         zip(world_df['July'], world_df['Total Population, as of 1 July (thousands)']))
     # build the population DataFrame
     population_df = DataFrame(
-        data={'date': list(population.keys()), 'population': list(population.values())}).sort_values(
-        by='date').reset_index(drop=True)
-    population_df['population'] = 1000 * population_df['population']
+        data={
+            'date': list(population.keys()),
+            'date-as-date': [to_datetime(arg=item) for item in list(population.keys())],
+            'population': [1000 * item for item in population.values()]
+        }
+    ).sort_values(by='date').reset_index(drop=True)
+    # todo have the base date be the minimum date
+    min_date = population_df['date-as-date'].min().to_pydatetime().date()
+    population_df['serialtime'] = population_df['date-as-date'].apply(lambda x: (x.to_pydatetime().date() - min_date).days)
+    # todo put dates on the x axis ticks
+    scatter_plot = scatter(data_frame=population_df, x='serialtime', y='population',
+                           trendline='ols',
+                           title='World Population 1/1950 to 7/2021'
+                           ).update_xaxes(
+        tickvals=population_df['date'],
+        title='date',
+        # tickmode='array',
+        ticktext=[date.strftime('%Y') for date in population_df['date']],
+    )
+
     with open(file=OUTPUT_FOLDER + 'world_population.scatter.txt', mode='w') as output_fp:
-        output_fp.write(to_html(fig=scatter(data_frame=population_df, x='date', y='population'), full_html=False))
+        output_fp.write(to_html(fig=scatter_plot, full_html=False))
 
     LOGGER.info('saved population plot')
 
