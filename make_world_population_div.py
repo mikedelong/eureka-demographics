@@ -82,7 +82,6 @@ if __name__ == '__main__':
             'population': [1000 * item for item in population.values()]
         }
     ).sort_values(by='date').reset_index(drop=True)
-    # todo have the base date be the minimum date
     min_date = population_df['date-as-date'].min().to_pydatetime().date()
     population_df['serialtime'] = population_df['date-as-date'].apply(lambda x: (x.to_pydatetime().date() - min_date).days)
     # todo put dates on the x axis ticks
