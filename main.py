@@ -5,6 +5,7 @@ from datetime import date
 from logging import INFO
 from logging import basicConfig
 from logging import getLogger
+from pathlib import Path
 from typing import Optional
 from typing import Union
 
@@ -78,10 +79,13 @@ COLUMNS = ['Index', 'Variant', 'Region, subregion, country or area *', 'Notes',
            'Net Migration Rate (per 1,000 population)']
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
+OUTPUT_FOLDER = './plot/'
 SAVE_WORLD_DATA = False
 SEABORN_STYLE = 'darkgrid'
 USECOLS = [
+    'Crude Birth Rate (births per 1,000 population)',
     'Crude Death Rate (deaths per 1,000 population)',
+    'Rate of Natural Change (per 1,000 population)',
     'Region, subregion, country or area *',
     'Total Deaths (thousands)',
     'Total Population, as of 1 January (thousands)',
@@ -96,6 +100,10 @@ if __name__ == '__main__':
     LOGGER = getLogger(__name__, )
     basicConfig(format='%(asctime)s : %(name)s : %(levelname)s : %(message)s', level=INFO, )
     LOGGER.info('started')
+
+    for folder in [DATA_FOLDER, OUTPUT_FOLDER]:
+        LOGGER.info('creating folder %s if it does not exist', folder)
+        Path(folder).mkdir(parents=True, exist_ok=True)
 
     if SAVE_WORLD_DATA:
         data_file = DATA_FOLDER + INPUT_FILE
@@ -128,7 +136,7 @@ if __name__ == '__main__':
     population_df['population'] = 1000 * population_df['population']
     figure_population, axes_population = subplots()
     axes_scatter_population = scatterplot(ax=axes_population, data=population_df, x='date', y='population')
-    savefig(fname='./population.png', format='png')
+    savefig(fname=OUTPUT_FOLDER + 'population.png', format='png')
     LOGGER.info('saved population plot')
 
     # plot the global annual death count
@@ -137,7 +145,7 @@ if __name__ == '__main__':
     death_df['Total Deaths'] = 1000 * death_df['Total Deaths (thousands)'].astype(int)
     figure_death, axes_death = subplots()
     axes_scatter_death = scatterplot(ax=axes_death, data=death_df, x='Year', y='Total Deaths')
-    savefig(fname='./death.png', format='png')
+    savefig(fname=OUTPUT_FOLDER + 'death.png', format='png')
     LOGGER.info('saved death plot')
 
     # plot the global crude death rate
@@ -145,8 +153,27 @@ if __name__ == '__main__':
     crude_death_df['Year'] = crude_death_df['Year'].astype(int)
     crude_death_df.rename(columns={'Crude Death Rate (deaths per 1,000 population)': 'Death Rate'}, inplace=True)
     figure_crude_death, axes_crude_death = subplots()
-    axes_scatter_crude_death = scatterplot(ax=axes_crude_death, data=crude_death_df, x='Year', y='Death Rate')
-    savefig(fname='./crude_death.png', format='png')
+    result_scatter_crude_death = scatterplot(ax=axes_crude_death, data=crude_death_df, x='Year', y='Death Rate')
+    savefig(fname=OUTPUT_FOLDER + 'crude_death.png', format='png')
     LOGGER.info('saved crude death plot')
+
+    column = 'Rate of Natural Change (per 1,000 population)'
+    natural_change_df = world_df[['Year', column, ]].copy(deep=True)
+    natural_change_df['Year'] = crude_death_df['Year'].astype(int)
+    natural_change_df.rename(columns={column: 'Natural Change'}, inplace=True)
+    figure_natural_change, axes_natural_change = subplots()
+    result_scatter_natural_change = scatterplot(ax=axes_natural_change, data=natural_change_df, x='Year',
+                                                y='Natural Change')
+    savefig(format='png', fname=OUTPUT_FOLDER + 'natural_change.png', )
+    LOGGER.info('saved natural change plot')
+
+    column = 'Crude Birth Rate (births per 1,000 population)'
+    crude_birth_df = world_df[['Year', column, ]].copy(deep=True)
+    crude_birth_df['Year'] = crude_birth_df['Year'].astype(int)
+    crude_birth_df.rename(columns={column: 'Crude Birth'}, inplace=True)
+    figure_crude_birth, axes_crude_birth = subplots()
+    result_scatter_crude_birth = scatterplot(ax=axes_crude_birth, data=crude_birth_df, x='Year', y='Crude Birth')
+    savefig(format='png', fname=OUTPUT_FOLDER + 'crude_birth.png', )
+    LOGGER.info('saved crude birth plot')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
