@@ -15,17 +15,23 @@ from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
 from pandas import DataFrame
 from pandas import read_excel
+from seaborn import lineplot
 from seaborn import scatterplot
 from seaborn import set_style
 
 
-def make_scatter(column_name: str, column_short_name: str, input_df: DataFrame, fname_short: str):
+def make_plots(column_name: str, column_short_name: str, input_df: DataFrame, fname_short: str):
     work_df = input_df[['Year', column_name, ]].copy(deep=True)
     work_df['Year'] = work_df['Year'].astype(int)
     work_df.rename(columns={column_name: column_short_name}, inplace=True)
     figure_, axes_ = subplots()
+    _ = lineplot(ax=axes_, data=work_df, x='Year', y=column_short_name)
+    fname_ = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, fname_short)
+    savefig(format='png', fname=fname_, )
+    close(fig=figure_)
+    figure_, axes_ = subplots()
     _ = scatterplot(ax=axes_, data=work_df, x='Year', y=column_short_name)
-    fname_ = '{}{}.png'.format(OUTPUT_FOLDER, fname_short)
+    fname_ = '{}{}_scatterplot.png'.format(OUTPUT_FOLDER, fname_short)
     savefig(format='png', fname=fname_, )
     close(fig=figure_)
 
@@ -163,28 +169,28 @@ if __name__ == '__main__':
     LOGGER.info('saved death plot')
 
     # plot the global crude death rate
-    make_scatter(column_name='Crude Death Rate (deaths per 1,000 population)',
-                 column_short_name='Crude Death', input_df=world_df, fname_short='crude_death', )
+    make_plots(column_name='Crude Death Rate (deaths per 1,000 population)',
+               column_short_name='Crude Death', input_df=world_df, fname_short='crude_death', )
     LOGGER.info('saved crude death plot')
 
     # plot the rate of natural change
-    make_scatter(column_name='Rate of Natural Change (per 1,000 population)',
-                 column_short_name='Natural Change', input_df=world_df, fname_short='natural_change', )
+    make_plots(column_name='Rate of Natural Change (per 1,000 population)',
+               column_short_name='Natural Change', input_df=world_df, fname_short='natural_change', )
     LOGGER.info('saved natural change plot')
 
     # plot the crude birth rate
-    make_scatter(column_name='Crude Birth Rate (births per 1,000 population)',
-                 column_short_name='Crude Birth', input_df=world_df, fname_short='crude_birth', )
+    make_plots(column_name='Crude Birth Rate (births per 1,000 population)',
+               column_short_name='Crude Birth', input_df=world_df, fname_short='crude_birth', )
     LOGGER.info('saved crude birth plot')
 
     # plot the population change per thousand
-    make_scatter(column_name='Population Change (thousands)', column_short_name='Population Change/1000',
-                 input_df=world_df, fname_short='population_change')
+    make_plots(column_name='Population Change (thousands)', column_short_name='Population Change/1000',
+               input_df=world_df, fname_short='population_change')
     LOGGER.info('saved population change plot')
 
     # plot the population growth rate
-    make_scatter(column_name='Population Growth Rate (percentage)', column_short_name='Growth Rate',
-                 input_df=world_df, fname_short='population_growth_rate')
+    make_plots(column_name='Population Growth Rate (percentage)', column_short_name='Growth Rate',
+               input_df=world_df, fname_short='population_growth_rate')
     LOGGER.info('saved population growth rate plot')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
