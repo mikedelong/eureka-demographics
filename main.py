@@ -10,12 +10,24 @@ from typing import Optional
 from typing import Union
 
 from arrow import now
+from matplotlib.pyplot import close
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
 from pandas import DataFrame
 from pandas import read_excel
 from seaborn import scatterplot
 from seaborn import set_style
+
+
+def make_scatter(column_name: str, column_short_name: str, input_df: DataFrame, fname_short: str):
+    work_df = input_df[['Year', column_name, ]].copy(deep=True)
+    work_df['Year'] = work_df['Year'].astype(int)
+    work_df.rename(columns={column_name: column_short_name}, inplace=True)
+    figure_, axes_ = subplots()
+    _ = scatterplot(ax=axes_, data=work_df, x='Year', y=column_short_name)
+    fname_ = '{}{}.png'.format(OUTPUT_FOLDER, fname_short)
+    savefig(format='png', fname=fname_, )
+    close(fig=figure_)
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -85,6 +97,8 @@ SEABORN_STYLE = 'darkgrid'
 USECOLS = [
     'Crude Birth Rate (births per 1,000 population)',
     'Crude Death Rate (deaths per 1,000 population)',
+    'Population Change (thousands)',
+    'Population Growth Rate (percentage)',
     'Rate of Natural Change (per 1,000 population)',
     'Region, subregion, country or area *',
     'Total Deaths (thousands)',
@@ -120,8 +134,8 @@ if __name__ == '__main__':
     else:
         # if we don't load the whole data file above then we need to load the world-only data
         world_file = DATA_FOLDER + WORLD_DATA_FILE
-        usecols = USECOLS + ['January', 'July']
-        world_df = read_excel_dataframe(io=world_file, header=0, usecols=usecols)
+        world_usecols = USECOLS + ['January', 'July']
+        world_df = read_excel_dataframe(io=world_file, header=0, usecols=world_usecols)
         LOGGER.info('loaded %d rows from %s', len(world_df), WORLD_DATA_FILE)
 
     set_style(style=SEABORN_STYLE)
@@ -149,31 +163,28 @@ if __name__ == '__main__':
     LOGGER.info('saved death plot')
 
     # plot the global crude death rate
-    crude_death_df = world_df[['Year', 'Crude Death Rate (deaths per 1,000 population)']].copy(deep=True)
-    crude_death_df['Year'] = crude_death_df['Year'].astype(int)
-    crude_death_df.rename(columns={'Crude Death Rate (deaths per 1,000 population)': 'Death Rate'}, inplace=True)
-    figure_crude_death, axes_crude_death = subplots()
-    result_scatter_crude_death = scatterplot(ax=axes_crude_death, data=crude_death_df, x='Year', y='Death Rate')
-    savefig(fname=OUTPUT_FOLDER + 'crude_death.png', format='png')
+    make_scatter(column_name='Crude Death Rate (deaths per 1,000 population)',
+                 column_short_name='Crude Death', input_df=world_df, fname_short='crude_death', )
     LOGGER.info('saved crude death plot')
 
-    column = 'Rate of Natural Change (per 1,000 population)'
-    natural_change_df = world_df[['Year', column, ]].copy(deep=True)
-    natural_change_df['Year'] = crude_death_df['Year'].astype(int)
-    natural_change_df.rename(columns={column: 'Natural Change'}, inplace=True)
-    figure_natural_change, axes_natural_change = subplots()
-    result_scatter_natural_change = scatterplot(ax=axes_natural_change, data=natural_change_df, x='Year',
-                                                y='Natural Change')
-    savefig(format='png', fname=OUTPUT_FOLDER + 'natural_change.png', )
+    # plot the rate of natural change
+    make_scatter(column_name='Rate of Natural Change (per 1,000 population)',
+                 column_short_name='Natural Change', input_df=world_df, fname_short='natural_change', )
     LOGGER.info('saved natural change plot')
 
-    column = 'Crude Birth Rate (births per 1,000 population)'
-    crude_birth_df = world_df[['Year', column, ]].copy(deep=True)
-    crude_birth_df['Year'] = crude_birth_df['Year'].astype(int)
-    crude_birth_df.rename(columns={column: 'Crude Birth'}, inplace=True)
-    figure_crude_birth, axes_crude_birth = subplots()
-    result_scatter_crude_birth = scatterplot(ax=axes_crude_birth, data=crude_birth_df, x='Year', y='Crude Birth')
-    savefig(format='png', fname=OUTPUT_FOLDER + 'crude_birth.png', )
+    # plot the crude birth rate
+    make_scatter(column_name='Crude Birth Rate (births per 1,000 population)',
+                 column_short_name='Crude Birth', input_df=world_df, fname_short='crude_birth', )
     LOGGER.info('saved crude birth plot')
+
+    # plot the population change per thousand
+    make_scatter(column_name='Population Change (thousands)', column_short_name='Population Change/1000',
+                 input_df=world_df, fname_short='population_change')
+    LOGGER.info('saved population change plot')
+
+    # plot the population growth rate
+    make_scatter(column_name='Population Growth Rate (percentage)', column_short_name='Growth Rate',
+                 input_df=world_df, fname_short='population_growth_rate')
+    LOGGER.info('saved population growth rate plot')
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
