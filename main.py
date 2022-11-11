@@ -157,9 +157,16 @@ if __name__ == '__main__':
         data={'date': list(population.keys()), 'population': list(population.values())}).sort_values(
         by='date').reset_index(drop=True)
     population_df['population'] = 1000 * population_df['population']
-    figure_population, axes_population = subplots()
-    axes_scatter_population = scatterplot(ax=axes_population, data=population_df, x='date', y='population')
-    savefig(fname=OUTPUT_FOLDER + 'population.png', format='png')
+
+    figure_population_scatter, axes_population_scatter = subplots()
+    result_scatter = scatterplot(ax=axes_population_scatter, data=population_df, x='date', y='population')
+    savefig(fname=OUTPUT_FOLDER + 'population_scatter.png', format='png')
+    close(fig=figure_population_scatter)
+
+    figure_population_line, axes_population_line = subplots()
+    result_line = lineplot(ax=axes_population_line, data=population_df, x='date', y='population')
+    savefig(fname=OUTPUT_FOLDER + 'population_line.png', format='png')
+    close(fig=figure_population_line)
     LOGGER.info('saved population plot')
 
     # plot the global annual death count
