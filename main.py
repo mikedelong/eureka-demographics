@@ -20,10 +20,12 @@ from seaborn import lmplot
 from seaborn import regplot
 from seaborn import scatterplot
 from seaborn import set_style
+from scipy.stats import linregress
+
 
 
 def make_plots(column_name: str, column_short_name: str, input_df: DataFrame, fname_short: str,
-               scale: Optional[int] = 1):
+               scale: Optional[int] = 1)  :
     work_df = input_df[['Year', column_name, ]].copy(deep=True)
     work_df['Year'] = work_df['Year'].astype(int)
     work_df.rename(columns={column_name: column_short_name}, inplace=True)
@@ -49,6 +51,8 @@ def make_plots(column_name: str, column_short_name: str, input_df: DataFrame, fn
     fname_ = '{}{}_regplot.png'.format(OUTPUT_FOLDER, fname_short)
     savefig(format='png', fname=fname_, )
     close(fig=figure_)
+    return linregress(x=work_df['Year'], y=work_df[column_short_name])
+
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -182,9 +186,10 @@ if __name__ == '__main__':
     LOGGER.info('saved population plot')
 
     # plot the global July population
-    make_plots(column_name='Total Population, as of 1 July (thousands)', column_short_name='Population (July)',
-               input_df=world_df, fname_short='population_july', )
+    result = make_plots(column_name='Total Population, as of 1 July (thousands)', column_short_name='Population (July)',
+               input_df=world_df, scale=1000, fname_short='population_july', )
     LOGGER.info('saved July population plot')
+    LOGGER.info('r^2: %0.3f', result.rvalue * result.rvalue)
 
     # plot the global annual death count
     make_plots(column_name='Total Deaths (thousands)', column_short_name='Total Deaths', input_df=world_df,
@@ -207,9 +212,10 @@ if __name__ == '__main__':
     LOGGER.info('saved crude birth plot')
 
     # plot the population change per thousand
-    make_plots(column_name='Population Change (thousands)', column_short_name='Population Change',
+    result = make_plots(column_name='Population Change (thousands)', column_short_name='Population Change',
                input_df=world_df, fname_short='population_change', scale=1000, )
     LOGGER.info('saved population change plot')
+    LOGGER.info('r^2: %0.3f', result.rvalue * result.rvalue)
 
     # plot the population growth rate
     make_plots(column_name='Population Growth Rate (percentage)', column_short_name='Growth Rate',
