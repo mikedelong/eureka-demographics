@@ -16,6 +16,8 @@ from matplotlib.pyplot import subplots
 from pandas import DataFrame
 from pandas import read_excel
 from seaborn import lineplot
+from seaborn import lmplot
+from seaborn import regplot
 from seaborn import scatterplot
 from seaborn import set_style
 
@@ -35,6 +37,16 @@ def make_plots(column_name: str, column_short_name: str, input_df: DataFrame, fn
     figure_, axes_ = subplots()
     _ = scatterplot(ax=axes_, data=work_df, x='Year', y=column_short_name)
     fname_ = '{}{}_scatterplot.png'.format(OUTPUT_FOLDER, fname_short)
+    savefig(format='png', fname=fname_, )
+    close(fig=figure_)
+    figure_, axes_ = subplots()
+    _ = lmplot(data=work_df, line_kws={'color': 'orange'}, x='Year', y=column_short_name, )
+    fname_ = '{}{}_lmplot.png'.format(OUTPUT_FOLDER, fname_short)
+    savefig(format='png', fname=fname_, )
+    close(fig=figure_)
+    figure_, axes_ = subplots()
+    _ = regplot(data=work_df, line_kws={'color': 'orange'}, x='Year', y=column_short_name, )
+    fname_ = '{}{}_regplot.png'.format(OUTPUT_FOLDER, fname_short)
     savefig(format='png', fname=fname_, )
     close(fig=figure_)
 
@@ -168,6 +180,11 @@ if __name__ == '__main__':
     savefig(fname=OUTPUT_FOLDER + 'population_line.png', format='png')
     close(fig=figure_population_line)
     LOGGER.info('saved population plot')
+
+    # plot the global July population
+    make_plots(column_name='Total Population, as of 1 July (thousands)', column_short_name='Population (July)',
+               input_df=world_df, fname_short='population_july', )
+    LOGGER.info('saved July population plot')
 
     # plot the global annual death count
     make_plots(column_name='Total Deaths (thousands)', column_short_name='Total Deaths', input_df=world_df,
