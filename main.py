@@ -201,9 +201,17 @@ if __name__ == '__main__':
     LOGGER.info('saved crude death plot')
 
     # plot the rate of natural change
-    make_plots(column_name='Rate of Natural Change (per 1,000 population)',
+    r_squared = make_plots(column_name='Rate of Natural Change (per 1,000 population)',
                column_short_name='Natural Change', input_df=world_df, fname_short='natural_change', )
-    LOGGER.info('saved natural change plot')
+    LOGGER.info('saved natural change plot, r^2 = %0.3f', r_squared)
+
+    # plot the rate of natural change after 1963
+    r_squared = make_plots(column_name='Rate of Natural Change (per 1,000 population)',
+               column_short_name='Natural Change',
+                           input_df=world_df[world_df['Year'] > 1963],
+                           fname_short='natural_change_after_1963', )
+    LOGGER.info('saved natural change plot, r^2 = %0.3f', r_squared)
+
 
     # plot the crude birth rate
     make_plots(column_name='Crude Birth Rate (births per 1,000 population)',
