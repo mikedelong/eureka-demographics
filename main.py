@@ -24,7 +24,7 @@ from seaborn import set_style
 
 
 def make_plots(column_name: str, column_short_name: str, input_df: DataFrame, fname_short: str,
-               scale: Optional[int] = 1)  -> float:
+               scale: Optional[int] = 1) -> float:
     work_df = input_df[['Year', column_name, ]].copy(deep=True)
     work_df['Year'] = work_df['Year'].astype(int)
     work_df.rename(columns={column_name: column_short_name}, inplace=True)
@@ -52,7 +52,6 @@ def make_plots(column_name: str, column_short_name: str, input_df: DataFrame, fn
     close(fig=figure_)
     rvalue = linregress(x=work_df['Year'], y=work_df[column_short_name]).rvalue
     return rvalue * rvalue
-
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -186,8 +185,9 @@ if __name__ == '__main__':
     LOGGER.info('saved population plot')
 
     # plot the global July population
-    r_squared = make_plots(column_name='Total Population, as of 1 July (thousands)', column_short_name='Population (July)',
-               input_df=world_df, scale=1000, fname_short='population_july', )
+    r_squared = make_plots(column_name='Total Population, as of 1 July (thousands)',
+                           column_short_name='Population (July)',
+                           input_df=world_df, scale=1000, fname_short='population_july', )
     LOGGER.info('saved July population plot; r^2: %0.3f', r_squared)
 
     # plot the global annual death count
@@ -202,16 +202,15 @@ if __name__ == '__main__':
 
     # plot the rate of natural change
     r_squared = make_plots(column_name='Rate of Natural Change (per 1,000 population)',
-               column_short_name='Natural Change', input_df=world_df, fname_short='natural_change', )
+                           column_short_name='Natural Change', input_df=world_df, fname_short='natural_change', )
     LOGGER.info('saved natural change plot, r^2 = %0.3f', r_squared)
 
     # plot the rate of natural change after 1963
     r_squared = make_plots(column_name='Rate of Natural Change (per 1,000 population)',
-               column_short_name='Natural Change',
+                           column_short_name='Natural Change',
                            input_df=world_df[world_df['Year'] > 1963],
                            fname_short='natural_change_after_1963', )
     LOGGER.info('saved natural change plot, r^2 = %0.3f', r_squared)
-
 
     # plot the crude birth rate
     make_plots(column_name='Crude Birth Rate (births per 1,000 population)',
@@ -220,7 +219,7 @@ if __name__ == '__main__':
 
     # plot the population change per thousand
     r_squared = make_plots(column_name='Population Change (thousands)', column_short_name='Population Change',
-               input_df=world_df, fname_short='population_change', scale=1000, )
+                           input_df=world_df, fname_short='population_change', scale=1000, )
     LOGGER.info('saved population change plot; r^2: %0.3f', r_squared)
 
     # plot the population growth rate
