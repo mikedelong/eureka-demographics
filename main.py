@@ -201,7 +201,7 @@ if __name__ == '__main__':
     LOGGER.info('saved crude death plot')
 
     # plot the rate of natural change
-    make_plots(column_name='Rate of Natural Change (per 1,000 population)', scale=1000,
+    make_plots(column_name='Rate of Natural Change (per 1,000 population)',
                column_short_name='Natural Change', input_df=world_df, fname_short='natural_change', )
     LOGGER.info('saved natural change plot')
 
