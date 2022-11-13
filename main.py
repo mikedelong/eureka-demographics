@@ -196,9 +196,9 @@ if __name__ == '__main__':
     LOGGER.info('saved death plot')
 
     # plot the global crude death rate
-    make_plots(column_name='Crude Death Rate (deaths per 1,000 population)',
+    r_squared = make_plots(column_name='Crude Death Rate (deaths per 1,000 population)',
                column_short_name='Crude Death', input_df=world_df, fname_short='crude_death', )
-    LOGGER.info('saved crude death plot')
+    LOGGER.info('saved crude death plot, r^2 = %0.3f', r_squared)
 
     # plot the rate of natural change
     r_squared = make_plots(column_name='Rate of Natural Change (per 1,000 population)',
@@ -213,9 +213,9 @@ if __name__ == '__main__':
     LOGGER.info('saved natural change plot, r^2 = %0.3f', r_squared)
 
     # plot the crude birth rate
-    make_plots(column_name='Crude Birth Rate (births per 1,000 population)',
+    r_squared = make_plots(column_name='Crude Birth Rate (births per 1,000 population)',
                column_short_name='Crude Birth', input_df=world_df, fname_short='crude_birth', )
-    LOGGER.info('saved crude birth plot')
+    LOGGER.info('saved crude birth plot; r^2: %0.3f', r_squared)
 
     # plot the population change per thousand
     r_squared = make_plots(column_name='Population Change (thousands)', column_short_name='Population Change',
