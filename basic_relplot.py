@@ -17,6 +17,7 @@ from pandas import melt
 from pandas import read_excel
 from seaborn import relplot
 from seaborn import set_style
+from seaborn import lineplot
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
@@ -24,6 +25,7 @@ def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int
     return result_df
 
 
+# todo move this to common
 COLUMNS = ['Index', 'Variant', 'Region, subregion, country or area *', 'Notes',
            'Location code', 'ISO3 Alpha-code', 'ISO2 Alpha-code', 'SDMX code**',
            'Type', 'Parent code', 'Year',
@@ -129,5 +131,10 @@ if __name__ == '__main__':
     result_relplot = relplot(col='variable', data=plot_df, kind='line', x='Year', y='Rate', )
     savefig(fname=OUTPUT_FOLDER + 'birth_death_relplot.png', format='png')
     close(fig=figure_relplot)
+
+    figure_lineplot, axes_lineplot = subplots()
+    result_lineplot = lineplot(data=plot_df, x='Year', y='Rate', hue='variable')
+    savefig(fname=OUTPUT_FOLDER + 'birth_death_lineplot.png', format='png')
+    close(fig=figure_lineplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
