@@ -1,7 +1,6 @@
 """
 Load and parse Excel data
 """
-from datetime import date
 from logging import INFO
 from logging import basicConfig
 from logging import getLogger
@@ -13,12 +12,15 @@ from arrow import now
 from matplotlib.pyplot import close
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
+from matplotlib.pyplot import tight_layout
 from pandas import DataFrame
+from pandas import melt
 from pandas import read_excel
 from scipy.stats import linregress
 from seaborn import lineplot
 from seaborn import lmplot
 from seaborn import regplot
+from seaborn import relplot
 from seaborn import scatterplot
 from seaborn import set_style
 
@@ -153,7 +155,63 @@ if __name__ == '__main__':
     fname_ = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, 'region_crude_death')
     savefig(format='png', fname=fname_, )
     close(fig=figure_)
+    LOGGER.info('saved plot in %s', fname_)
 
-    LOGGER.info(df['Type'].value_counts().to_dict())
+    # first get the Asian subregions
+    t0 = df[df['Parent code'] == 935]['Location code'].unique()
+    t1 = df[df['Parent code'].isin(t0)]['Location code'].unique()
+
+    asia_subregion_df = df[df['Parent code'] == 935][[
+        'Year', 'Region, subregion, country or area *',
+        'Parent code',
+        'Natural Change, Births minus Deaths (thousands)',
+        'Rate of Natural Change (per 1,000 population)',
+        'Crude Death Rate (deaths per 1,000 population)',
+    ]].rename(columns={
+        'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+        'Region, subregion, country or area *': 'Region',
+    })
+    figure_, axes_ = subplots()
+    _ = lineplot(ax=axes_, data=asia_subregion_df, x='Year', y='Crude Death', hue='Region')
+    fname_ = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, 'asia_subregion_crude_death')
+    savefig(format='png', fname=fname_, )
+    close(fig=figure_)
+    LOGGER.info('saved plot in %s', fname_)
+
+    # Parent code 906
+    eastern_asia_df = df[df['Parent code'] == 906][[
+        'Year', 'Region, subregion, country or area *',
+        'Crude Death Rate (deaths per 1,000 population)',
+        'Total Deaths (thousands)',
+    ]].rename(columns={
+        'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+        'Region, subregion, country or area *': 'Country',
+        'Total Deaths (thousands)': 'Deaths'
+    })
+    eastern_asia_df['Deaths'] = 1000 * eastern_asia_df['Deaths'].astype(int)
+    eastern_asia_df['Year'] = eastern_asia_df['Year'].astype(int)
+    # rename the countries so we get a small legend
+    eastern_asia_df['Country'].replace({'China, Hong Kong SAR': 'Hong Kong',
+                                        'China, Macao SAR': 'Macau',
+                                        'China, Taiwan Province of China': 'Taiwan',
+                                        'Dem. People\'s Republic of Korea': 'N. Korea',
+                                        'Republic of Korea': 'S. Korea'}, inplace=True)
+
+    figure_, axes_ = subplots()
+    _ = lineplot(ax=axes_, data=eastern_asia_df, x='Year', y='Crude Death', hue='Country')
+    fname_ = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, 'eastern_asia_crude_death')
+    tight_layout()
+    savefig(format='png', fname=fname_, )
+    close(fig=figure_)
+    LOGGER.info('saved plot in %s', fname_)
+
+    plot_df = melt(frame=eastern_asia_df, id_vars=['Year', 'Country'], value_name='Quantity',
+                   value_vars=['Crude Death', 'Deaths'])
+    figure_relplot, axes_relplot = subplots()
+    result_relplot = relplot(col='variable', data=plot_df, kind='line', x='Year', y='Quantity', hue='Country',
+                             facet_kws={'sharey': False, 'sharex': True, 'legend_out': True, }, )
+    result_relplot.set(ylabel=None)
+    savefig(fname=OUTPUT_FOLDER + 'eastern_asia_relplot.png', format='png')
+    close(fig=figure_relplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
