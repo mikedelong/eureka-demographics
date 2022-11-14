@@ -216,13 +216,22 @@ if __name__ == '__main__':
     close(fig=figure_relplot)
 
     china_df = plot_df[
-        (plot_df['Country'] == 'China') & (plot_df['variable'] != 'Crude Death') & (plot_df['Year'] >= 1958) & (
-                plot_df['Year'] <= 1962)].copy(deep=True)
-    china_df['interpolated'] = china_df.apply(axis=1,
-                                              func=lambda x: x['Quantity'] if x['Year'] in {china_df['Year'].max(),
-                                                                                            china_df[
-                                                                                                'Year'].min()} else nan)
-    china_df['interpolated'] = china_df['interpolated'].interpolate().astype(int)
-    LOGGER.info('excess deaths estimate: %d', china_df['Quantity'].sum() - china_df['interpolated'].sum())
+        (plot_df['Country'] == 'China') & (plot_df['variable'] != 'Crude Death') & (plot_df['Year'] >= 1956) & (
+                plot_df['Year'] <= 1964)].copy(deep=True)
+    china_df['Interpolated'] = china_df.apply(axis=1,
+                                              func=lambda x: x['Quantity'] if x['Year'] not in {1959, 1960, 1961 } else nan)
+    china_df['Interpolated'] = china_df['Interpolated'].interpolate().astype(int)
+    LOGGER.info('excess deaths estimate: %d', china_df['Quantity'].sum() - china_df['Interpolated'].sum())
+    china_df['Actual'] = china_df['Quantity']
+    small_plot_df = melt(frame=china_df, id_vars=['Year'], value_vars=['Actual', 'Interpolated'], value_name='Deaths')
+    figure_, axes_ = subplots()
+    _ = lineplot(ax=axes_, data=small_plot_df, x='Year', y='Deaths', hue='variable')
+    fname_ = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, 'china_interpolated')
+    tight_layout()
+    savefig(format='png', fname=fname_, )
+    close(fig=figure_)
+    LOGGER.info('saved plot in %s', fname_)
+
+
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
