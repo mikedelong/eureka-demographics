@@ -13,6 +13,7 @@ from matplotlib.pyplot import close
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
 from matplotlib.pyplot import tight_layout
+from numpy import nan
 from pandas import DataFrame
 from pandas import melt
 from pandas import read_excel
@@ -213,5 +214,15 @@ if __name__ == '__main__':
     result_relplot.set(ylabel=None)
     savefig(fname=OUTPUT_FOLDER + 'eastern_asia_relplot.png', format='png')
     close(fig=figure_relplot)
+
+    china_df = plot_df[
+        (plot_df['Country'] == 'China') & (plot_df['variable'] != 'Crude Death') & (plot_df['Year'] >= 1958) & (
+                plot_df['Year'] <= 1962)].copy(deep=True)
+    china_df['interpolated'] = china_df.apply(axis=1,
+                                              func=lambda x: x['Quantity'] if x['Year'] in {china_df['Year'].max(),
+                                                                                            china_df[
+                                                                                                'Year'].min()} else nan)
+    china_df['interpolated'] = china_df['interpolated'].interpolate().astype(int)
+    LOGGER.info('excess deaths estimate: %d', china_df['Quantity'].sum() - china_df['interpolated'].sum())
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
