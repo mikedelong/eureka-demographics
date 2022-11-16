@@ -10,8 +10,10 @@ from typing import Union
 
 from arrow import now
 from matplotlib.pyplot import close
+from matplotlib.pyplot import legend
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
+from matplotlib.pyplot import tight_layout
 from pandas import DataFrame
 from pandas import read_excel
 from scipy.stats import linregress
@@ -95,7 +97,7 @@ if __name__ == '__main__':
         'Region, subregion, country or area *': 'Region',
     })
     latin_america_df['Region'] = latin_america_df['Region'].replace(
-        {'LATIN AMERICA AND THE CARIBBEAN': 'LATIN AMERICA'})
+        {'LATIN AMERICA AND THE CARIBBEAN': 'Latin America'})
 
     set_style(style=SEABORN_STYLE)
     figure_lineplot, axes_lineplot = subplots()
@@ -107,5 +109,33 @@ if __name__ == '__main__':
     # first get the Asian subregions
     t0 = df[df['Parent code'] == 904]['Location code'].unique()
     t1 = df[df['Parent code'].isin(t0)]['Location code'].unique()
+
+    for code in t0:
+        region_df = df[(df['Parent code'] == code) | (df['Location code'] == code)][
+            ['Year', 'Region, subregion, country or area *', 'Location code',
+             'Natural Change, Births minus Deaths (thousands)',
+             'Rate of Natural Change (per 1,000 population)',
+             'Crude Death Rate (deaths per 1,000 population)',
+             ]].rename(columns={
+            'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+            'Region, subregion, country or area *': 'Region',
+        })
+
+        codes = region_df['Location code'].unique()
+        for start in range(0, len(codes), 5):
+            current = codes[start:start + 5]
+            plot_df = region_df[region_df['Location code'].isin(current)]
+
+            figure_lineplot, axes_lineplot = subplots()
+            result_lineplot = lineplot(data=plot_df, x='Year', y='Crude Death', hue='Region', )
+            legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+            tight_layout()
+
+            name = region_df[region_df['Location code'] == code]['Region'].unique()[0].lower().replace(' ', '_')
+            name_png = '{}_{}.png'.format(name, start)
+            LOGGER.info('saving plot for code %d to %s', code, name_png)
+
+            savefig(fname=OUTPUT_FOLDER + name_png, format='png')
+            close(fig=figure_lineplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
