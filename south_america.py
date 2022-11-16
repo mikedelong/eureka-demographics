@@ -110,7 +110,20 @@ if __name__ == '__main__':
     t0 = df[df['Parent code'] == 904]['Location code'].unique()
     t1 = df[df['Parent code'].isin(t0)]['Location code'].unique()
 
-    for code in t0:
+    # Let's try extracting some volatility measures
+    deviations = {region: latin_america_df[latin_america_df['Region'] == region]['Crude Death'].std() for region in
+                  latin_america_df['Region'].unique()}
+    deviation_df = DataFrame(data = {'Region': list(deviations.keys()), 'stddev': list(deviations.values()) })
+    maxes = {region: latin_america_df[latin_america_df['Region'] == region]['Crude Death'].max() for region in
+             latin_america_df['Region'].unique()}
+    max_df = DataFrame(data={'Region': list(maxes.keys()), 'max_value': list(maxes.values()) })
+    ranges = dict()
+    for region in latin_america_df['Region'].unique():
+        region_df = latin_america_df[latin_america_df['Region'] == region]
+        ranges[region] = region_df['Crude Death'].max() - region_df['Crude Death'].min()
+    range_df = DataFrame(data={'Region': list(ranges.keys()), 'range': list(ranges.values()) })
+
+    for code in []:  # t0:
         region_df = df[(df['Parent code'] == code) | (df['Location code'] == code)][
             ['Year', 'Region, subregion, country or area *', 'Location code',
              'Natural Change, Births minus Deaths (thousands)',
