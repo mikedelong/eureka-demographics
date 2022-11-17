@@ -94,8 +94,6 @@ if __name__ == '__main__':
     # for Latin America the location code is 904
     latin_america_df = df[(df['Parent code'] == 904) | (df['Location code'] == 904)][
         ['Year', 'Region, subregion, country or area *',
-         'Natural Change, Births minus Deaths (thousands)',
-         'Rate of Natural Change (per 1,000 population)',
          'Crude Death Rate (deaths per 1,000 population)',
          ]].rename(columns={
         'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
@@ -142,7 +140,7 @@ if __name__ == '__main__':
              countries_df['Region'].unique()}
     mean_df = DataFrame(data={'country': list(means.keys()), 'mean': list(means.values())})
 
-    plot_data = {'max': max_df, 'stddev': deviation_df, 'range': range_df,}
+    plot_data = {'max': max_df, 'stddev': deviation_df, 'range': range_df, }
     for y_variable, data_df in plot_data.items():
         plot_df = mean_df.merge(right=data_df, how='inner', on='country')
         plot_df['hue'] = plot_df['mean'] * plot_df[y_variable]
@@ -162,6 +160,28 @@ if __name__ == '__main__':
         tight_layout()
 
         savefig(fname=OUTPUT_FOLDER + 'latin_america_mean_{}_scatterplot.png'.format(y_variable), format='png')
+        close(fig=figure_scatterplot)
+
+    # plot selected countries vs. the regional rate
+    # for Latin America the location code is 904
+    for index, countries in enumerate([
+        ['Haiti', 'Montserrat', 'LATIN AMERICA AND THE CARIBBEAN', 'Bolivia (Plurinational State of)',
+         'WORLD', 'Falkland Islands (Malvinas)'],
+        ['WORLD', 'LATIN AMERICA AND THE CARIBBEAN', 'Mexico', 'Honduras', 'Guatemala', 'Nicaragua'], ]):
+        plot_df = df[df['Region, subregion, country or area *'].isin(countries)][
+            ['Year', 'Region, subregion, country or area *',
+             'Crude Death Rate (deaths per 1,000 population)',
+             ]].rename(columns={
+            'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+            'Region, subregion, country or area *': 'Region/Country',
+        })
+        to_replace = {'LATIN AMERICA AND THE CARIBBEAN': 'Latin America', 'Bolivia (Plurinational State of)': 'Bolivia',
+                      'Venezuela (Bolivarian Republic of)': 'Venezuela', 'Saint Martin (French part)': 'Saint Martin',
+                      'Sint Maarten (Dutch part)': 'Sint Maarten', 'Falkland Islands (Malvinas)': 'Falkland Islands', }
+        plot_df['Region/Country'].replace(inplace=True, to_replace=to_replace)
+        figure_lineplot, axes_lineplot = subplots()
+        result_lineplot = lineplot(data=plot_df, x='Year', y='Crude Death', hue='Region/Country', )
+        savefig(fname=OUTPUT_FOLDER + 'latin_america_comparison_lineplot-{}.png'.format(index + 1), format='png')
         close(fig=figure_lineplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
