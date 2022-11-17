@@ -10,11 +10,12 @@ from typing import Union
 
 from arrow import now
 from matplotlib.pyplot import close
-from matplotlib.pyplot import legend
+from matplotlib.pyplot import gca
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
 from matplotlib.pyplot import tight_layout
 from pandas import DataFrame
+from pandas import concat
 from pandas import read_excel
 from scipy.stats import linregress
 from seaborn import lineplot
@@ -24,6 +25,13 @@ from seaborn import scatterplot
 from seaborn import set_style
 
 from common import COLUMNS
+
+
+# https://stackoverflow.com/questions/46027653/adding-labels-in-x-y-scatter-plot-with-seaborn
+def label_point(x, y, val, ax):
+    rows_df = concat({'x': x, 'y': y, 'value': val}, axis=1)
+    for i, point in rows_df.iterrows():
+        ax.text(point['x'] + 0.03, point['y'] + 0.01, str(point['value']), fontsize='x-small')
 
 
 def make_plots(column_name: str, column_short_name: str, input_df: DataFrame, fname_short: str,
@@ -67,9 +75,6 @@ INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 OUTPUT_FOLDER = './plot/'
 SAVE_WORLD_DATA = False
 SEABORN_STYLE = 'darkgrid'
-# USECOLS = [
-#     'Year',
-# ]
 WORLD_DATA_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_WORLD.xlsx'
 
 if __name__ == '__main__':
@@ -107,48 +112,55 @@ if __name__ == '__main__':
     close(fig=figure_lineplot)
 
     # first get the Asian subregions
-    t0 = df[df['Parent code'] == 904]['Location code'].unique()
-    t1 = df[df['Parent code'].isin(t0)]['Location code'].unique()
+    region_codes = df[df['Parent code'] == 904]['Location code'].unique()
+    country_codes = df[df['Parent code'].isin(region_codes)]['Location code'].unique()
+
+    countries_df = df[df['Location code'].isin(country_codes)][
+        ['Year', 'Region, subregion, country or area *',
+         'Crude Death Rate (deaths per 1,000 population)',
+         ]].rename(columns={
+        'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+        'Region, subregion, country or area *': 'Region',
+    })
+    # todo is this necessary?
+    countries_df['Region'] = countries_df['Region'].replace(
+        {'LATIN AMERICA AND THE CARIBBEAN': 'Latin America'})
 
     # Let's try extracting some volatility measures
-    deviations = {region: latin_america_df[latin_america_df['Region'] == region]['Crude Death'].std() for region in
-                  latin_america_df['Region'].unique()}
-    deviation_df = DataFrame(data = {'Region': list(deviations.keys()), 'stddev': list(deviations.values()) })
-    maxes = {region: latin_america_df[latin_america_df['Region'] == region]['Crude Death'].max() for region in
-             latin_america_df['Region'].unique()}
-    max_df = DataFrame(data={'Region': list(maxes.keys()), 'max_value': list(maxes.values()) })
+    deviations = {region: countries_df[countries_df['Region'] == region]['Crude Death'].std() for region in
+                  countries_df['Region'].unique()}
+    deviation_df = DataFrame(data={'country': list(deviations.keys()), 'stddev': list(deviations.values())})
+    maxes = {region: countries_df[countries_df['Region'] == region]['Crude Death'].max() for region in
+             countries_df['Region'].unique()}
+    max_df = DataFrame(data={'country': list(maxes.keys()), 'max_value': list(maxes.values())})
     ranges = dict()
-    for region in latin_america_df['Region'].unique():
-        region_df = latin_america_df[latin_america_df['Region'] == region]
-        ranges[region] = region_df['Crude Death'].max() - region_df['Crude Death'].min()
-    range_df = DataFrame(data={'Region': list(ranges.keys()), 'range': list(ranges.values()) })
+    for country in countries_df['Region'].unique():
+        country_df = countries_df[countries_df['Region'] == country]
+        ranges[country] = country_df['Crude Death'].max() - country_df['Crude Death'].min()
+    range_df = DataFrame(data={'country': list(ranges.keys()), 'range': list(ranges.values())})
+    means = {region: countries_df[countries_df['Region'] == region]['Crude Death'].mean() for region in
+             countries_df['Region'].unique()}
+    mean_df = DataFrame(data={'country': list(means.keys()), 'mean': list(means.values())})
 
-    for code in []:  # t0:
-        region_df = df[(df['Parent code'] == code) | (df['Location code'] == code)][
-            ['Year', 'Region, subregion, country or area *', 'Location code',
-             'Natural Change, Births minus Deaths (thousands)',
-             'Rate of Natural Change (per 1,000 population)',
-             'Crude Death Rate (deaths per 1,000 population)',
-             ]].rename(columns={
-            'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
-            'Region, subregion, country or area *': 'Region',
-        })
+    # let's plot the mean against the stddev
+    plot_df = deviation_df.merge(right=mean_df, how='inner', on='country')
+    plot_df['hue'] = plot_df['mean'] * plot_df['stddev']
+    plot_df['country'].replace(inplace=True, to_replace={
+        'Bolivia (Plurinational State of)': 'Bolivia',
+        'Venezuela (Bolivarian Republic of)': 'Venezuela',
+        'Saint Martin (French part)': 'Saint Martin',
+        'Sint Maarten (Dutch part)': 'Sint Maarten',
+        'Falkland Islands (Malvinas)': 'Falkland Islands'
+    })
+    mean = 'Mean Crude Death'
+    stddev = 'std dev Crude Death'
+    plot_df.rename(columns={'mean': mean, 'stddev': stddev}, inplace=True, )
+    figure_scatterplot, axes_scatterplot = subplots()
+    result_scatterplot = lmplot(data=plot_df, x=mean, y=stddev, hue='hue', legend=False, aspect=2, )
+    label_point(x=plot_df[mean], y=plot_df[stddev], val=plot_df['country'], ax=gca())
+    tight_layout()
 
-        codes = region_df['Location code'].unique()
-        for start in range(0, len(codes), 5):
-            current = codes[start:start + 5]
-            plot_df = region_df[region_df['Location code'].isin(current)]
-
-            figure_lineplot, axes_lineplot = subplots()
-            result_lineplot = lineplot(data=plot_df, x='Year', y='Crude Death', hue='Region', )
-            legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
-            tight_layout()
-
-            name = region_df[region_df['Location code'] == code]['Region'].unique()[0].lower().replace(' ', '_')
-            name_png = '{}_{}.png'.format(name, start)
-            LOGGER.info('saving plot for code %d to %s', code, name_png)
-
-            savefig(fname=OUTPUT_FOLDER + name_png, format='png')
-            close(fig=figure_lineplot)
+    savefig(fname=OUTPUT_FOLDER + 'latin_america_mean_stddev_scatterplot.png', format='png')
+    close(fig=figure_lineplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
