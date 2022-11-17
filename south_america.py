@@ -17,11 +17,8 @@ from matplotlib.pyplot import tight_layout
 from pandas import DataFrame
 from pandas import concat
 from pandas import read_excel
-from scipy.stats import linregress
 from seaborn import lineplot
 from seaborn import lmplot
-from seaborn import regplot
-from seaborn import scatterplot
 from seaborn import set_style
 
 from common import COLUMNS
