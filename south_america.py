@@ -34,37 +34,6 @@ def label_point(x, y, val, ax):
         ax.text(point['x'] + 0.03, point['y'] + 0.01, str(point['value']), fontsize='x-small')
 
 
-def make_plots(column_name: str, column_short_name: str, input_df: DataFrame, fname_short: str,
-               scale: Optional[int] = 1) -> float:
-    work_df = input_df[['Year', column_name, ]].copy(deep=True)
-    work_df['Year'] = work_df['Year'].astype(int)
-    work_df.rename(columns={column_name: column_short_name}, inplace=True)
-    scale = 1 if scale == 1 else scale
-    work_df[column_short_name] = scale * work_df[column_short_name]
-    figure_, axes_ = subplots()
-    _ = lineplot(ax=axes_, data=work_df, x='Year', y=column_short_name)
-    fname_ = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, fname_short)
-    savefig(format='png', fname=fname_, )
-    close(fig=figure_)
-    figure_, axes_ = subplots()
-    _ = scatterplot(ax=axes_, data=work_df, x='Year', y=column_short_name)
-    fname_ = '{}{}_scatterplot.png'.format(OUTPUT_FOLDER, fname_short)
-    savefig(format='png', fname=fname_, )
-    close(fig=figure_)
-    figure_, axes_ = subplots()
-    _ = lmplot(data=work_df, line_kws={'color': 'orange'}, x='Year', y=column_short_name, )
-    fname_ = '{}{}_lmplot.png'.format(OUTPUT_FOLDER, fname_short)
-    savefig(format='png', fname=fname_, )
-    close(fig=figure_)
-    figure_, axes_ = subplots()
-    _ = regplot(data=work_df, line_kws={'color': 'orange'}, x='Year', y=column_short_name, )
-    fname_ = '{}{}_regplot.png'.format(OUTPUT_FOLDER, fname_short)
-    savefig(format='png', fname=fname_, )
-    close(fig=figure_)
-    rvalue = linregress(x=work_df['Year'], y=work_df[column_short_name]).rvalue
-    return rvalue * rvalue
-
-
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
     result_df = read_excel(engine='openpyxl', header=header, io=io, usecols=usecols)
     return result_df
@@ -75,6 +44,9 @@ INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 OUTPUT_FOLDER = './plot/'
 SAVE_WORLD_DATA = False
 SEABORN_STYLE = 'darkgrid'
+TO_REPLACE = {'LATIN AMERICA AND THE CARIBBEAN': 'Latin America', 'Bolivia (Plurinational State of)': 'Bolivia',
+              'Venezuela (Bolivarian Republic of)': 'Venezuela', 'Saint Martin (French part)': 'Saint Martin',
+              'Sint Maarten (Dutch part)': 'Sint Maarten', 'Falkland Islands (Malvinas)': 'Falkland Islands', }
 WORLD_DATA_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_WORLD.xlsx'
 
 if __name__ == '__main__':
@@ -144,13 +116,7 @@ if __name__ == '__main__':
     for y_variable, data_df in plot_data.items():
         plot_df = mean_df.merge(right=data_df, how='inner', on='country')
         plot_df['hue'] = plot_df['mean'] * plot_df[y_variable]
-        plot_df['country'].replace(inplace=True, to_replace={
-            'Bolivia (Plurinational State of)': 'Bolivia',
-            'Venezuela (Bolivarian Republic of)': 'Venezuela',
-            'Saint Martin (French part)': 'Saint Martin',
-            'Sint Maarten (Dutch part)': 'Sint Maarten',
-            'Falkland Islands (Malvinas)': 'Falkland Islands'
-        })
+        plot_df['country'].replace(inplace=True, to_replace=TO_REPLACE, )
         mean = 'Mean Crude Death'
         y_var = y_variable + ' Crude Death'
         plot_df.rename(columns={'mean': mean, y_variable: y_var}, inplace=True, )
@@ -163,7 +129,6 @@ if __name__ == '__main__':
         close(fig=figure_scatterplot)
 
     # plot selected countries vs. the regional rate
-    # for Latin America the location code is 904
     for index, countries in enumerate([
         ['Haiti', 'Montserrat', 'LATIN AMERICA AND THE CARIBBEAN', 'Bolivia (Plurinational State of)',
          'WORLD', 'Falkland Islands (Malvinas)'],
@@ -175,10 +140,7 @@ if __name__ == '__main__':
             'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
             'Region, subregion, country or area *': 'Region/Country',
         })
-        to_replace = {'LATIN AMERICA AND THE CARIBBEAN': 'Latin America', 'Bolivia (Plurinational State of)': 'Bolivia',
-                      'Venezuela (Bolivarian Republic of)': 'Venezuela', 'Saint Martin (French part)': 'Saint Martin',
-                      'Sint Maarten (Dutch part)': 'Sint Maarten', 'Falkland Islands (Malvinas)': 'Falkland Islands', }
-        plot_df['Region/Country'].replace(inplace=True, to_replace=to_replace)
+        plot_df['Region/Country'].replace(inplace=True, to_replace=TO_REPLACE)
         figure_lineplot, axes_lineplot = subplots()
         result_lineplot = lineplot(data=plot_df, x='Year', y='Crude Death', hue='Region/Country', )
         savefig(fname=OUTPUT_FOLDER + 'latin_america_comparison_lineplot-{}.png'.format(index + 1), format='png')
