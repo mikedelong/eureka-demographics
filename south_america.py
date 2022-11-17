@@ -132,7 +132,7 @@ if __name__ == '__main__':
     deviation_df = DataFrame(data={'country': list(deviations.keys()), 'stddev': list(deviations.values())})
     maxes = {region: countries_df[countries_df['Region'] == region]['Crude Death'].max() for region in
              countries_df['Region'].unique()}
-    max_df = DataFrame(data={'country': list(maxes.keys()), 'max_value': list(maxes.values())})
+    max_df = DataFrame(data={'country': list(maxes.keys()), 'max': list(maxes.values())})
     ranges = dict()
     for country in countries_df['Region'].unique():
         country_df = countries_df[countries_df['Region'] == country]
@@ -142,25 +142,26 @@ if __name__ == '__main__':
              countries_df['Region'].unique()}
     mean_df = DataFrame(data={'country': list(means.keys()), 'mean': list(means.values())})
 
-    # let's plot the mean against the stddev
-    plot_df = deviation_df.merge(right=mean_df, how='inner', on='country')
-    plot_df['hue'] = plot_df['mean'] * plot_df['stddev']
-    plot_df['country'].replace(inplace=True, to_replace={
-        'Bolivia (Plurinational State of)': 'Bolivia',
-        'Venezuela (Bolivarian Republic of)': 'Venezuela',
-        'Saint Martin (French part)': 'Saint Martin',
-        'Sint Maarten (Dutch part)': 'Sint Maarten',
-        'Falkland Islands (Malvinas)': 'Falkland Islands'
-    })
-    mean = 'Mean Crude Death'
-    stddev = 'std dev Crude Death'
-    plot_df.rename(columns={'mean': mean, 'stddev': stddev}, inplace=True, )
-    figure_scatterplot, axes_scatterplot = subplots()
-    result_scatterplot = lmplot(data=plot_df, x=mean, y=stddev, hue='hue', legend=False, aspect=2, )
-    label_point(x=plot_df[mean], y=plot_df[stddev], val=plot_df['country'], ax=gca())
-    tight_layout()
+    plot_data = {'max': max_df, 'stddev': deviation_df, 'range': range_df,}
+    for y_variable, data_df in plot_data.items():
+        plot_df = mean_df.merge(right=data_df, how='inner', on='country')
+        plot_df['hue'] = plot_df['mean'] * plot_df[y_variable]
+        plot_df['country'].replace(inplace=True, to_replace={
+            'Bolivia (Plurinational State of)': 'Bolivia',
+            'Venezuela (Bolivarian Republic of)': 'Venezuela',
+            'Saint Martin (French part)': 'Saint Martin',
+            'Sint Maarten (Dutch part)': 'Sint Maarten',
+            'Falkland Islands (Malvinas)': 'Falkland Islands'
+        })
+        mean = 'Mean Crude Death'
+        y_var = y_variable + ' Crude Death'
+        plot_df.rename(columns={'mean': mean, y_variable: y_var}, inplace=True, )
+        figure_scatterplot, axes_scatterplot = subplots()
+        result_scatterplot = lmplot(data=plot_df, x=mean, y=y_var, hue='hue', legend=False, aspect=2, )
+        label_point(x=plot_df[mean], y=plot_df[y_var], val=plot_df['country'], ax=gca())
+        tight_layout()
 
-    savefig(fname=OUTPUT_FOLDER + 'latin_america_mean_stddev_scatterplot.png', format='png')
-    close(fig=figure_lineplot)
+        savefig(fname=OUTPUT_FOLDER + 'latin_america_mean_{}_scatterplot.png'.format(y_variable), format='png')
+        close(fig=figure_lineplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
