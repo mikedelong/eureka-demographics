@@ -1,16 +1,19 @@
 from typing import Optional
 from typing import Union
 
+from matplotlib.axes import Axes
 from pandas import DataFrame
+from pandas import Series
 from pandas import concat
 from pandas import read_excel
 
 
 # https://stackoverflow.com/questions/46027653/adding-labels-in-x-y-scatter-plot-with-seaborn
-def label_point(x, y, val, ax):
+def label_point(x: Series, y: Series, val: Series, ax: Axes):
     rows_df = concat({'x': x, 'y': y, 'value': val}, axis=1)
     for i, point in rows_df.iterrows():
         ax.text(point['x'] + 0.03, point['y'] + 0.01, str(point['value']), fontsize='x-small')
+    return
 
 
 def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
