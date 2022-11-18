@@ -5,8 +5,6 @@ from logging import INFO
 from logging import basicConfig
 from logging import getLogger
 from pathlib import Path
-from typing import Optional
-from typing import Union
 
 from arrow import now
 from matplotlib.pyplot import close
@@ -14,36 +12,22 @@ from matplotlib.pyplot import gca
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
 from matplotlib.pyplot import tight_layout
-from pandas import DataFrame
-from pandas import concat
-from pandas import read_excel
-from seaborn import lineplot
 from seaborn import lmplot
 from seaborn import set_style
 
 from common import COLUMNS
+from common import label_point
+from common import read_excel_dataframe
 
-
-# todo move to common
-# https://stackoverflow.com/questions/46027653/adding-labels-in-x-y-scatter-plot-with-seaborn
-def label_point(x, y, val, ax):
-    rows_df = concat({'x': x, 'y': y, 'value': val}, axis=1)
-    for i, point in rows_df.iterrows():
-        ax.text(point['x'] + 0.03, point['y'] + 0.01, str(point['value']), fontsize='x-small')
-
-
-def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
-    result_df = read_excel(engine='openpyxl', header=header, io=io, usecols=usecols)
-    return result_df
-
-
-AFRICA_LOCATION_CODE = 903
+AGGREGATE_COLUMNS = ['Region, subregion, country or area *', 'Crude Death Rate (deaths per 1,000 population)']
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 OUTPUT_FOLDER = './plot/'
+REGION_SUBREGION = {'World', 'Region', 'Subregion', }
+RENAME_COLUMNS = {'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+                  'Region, subregion, country or area *': 'Aggregate', }
 SAVE_WORLD_DATA = False
 SEABORN_STYLE = 'darkgrid'
-TO_REPLACE = {}
 
 if __name__ == '__main__':
     TIME_START = now()
@@ -59,39 +43,30 @@ if __name__ == '__main__':
     df = read_excel_dataframe(io=data_file, header=16, usecols=COLUMNS)
     LOGGER.info('loaded %d rows from %s', len(df), data_file)
 
+    codes_df = df[['Region, subregion, country or area *', 'Type', 'Parent code', 'Location code']].drop_duplicates()
+    codes_df = codes_df[codes_df['Type'].isin(REGION_SUBREGION)]
+    # map the regions' parent codes onto their location codes
+    codes_df['Parent code'] = codes_df.apply(axis=1,
+                                             func=lambda x: x['Location code'] if x['Type'] == 'Region' else x[
+                                                 'Parent code'])
     # discard all the countries, areas, labels, and separators
-    columns = ['Region, subregion, country or area *',
-               'Crude Death Rate (deaths per 1,000 population)']
-    rename_columns = {
-        'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
-        'Region, subregion, country or area *': 'Aggregate',
-    }
-    types = {
-        'World', 'SDG region', 'Development Group',
-        'Special other', 'Income Group', 'Region', 'Subregion',
-    }
+    aggregate_df = df[df['Type'].isin(REGION_SUBREGION)][AGGREGATE_COLUMNS].rename(columns=RENAME_COLUMNS)
+    codes_df = codes_df.rename(columns=RENAME_COLUMNS)
 
-    region_subregion = {
-        'World',
-        # 'SDG region',
-        # 'Development Group',
-        # 'Special other', 'Income Group',
-        'Region', 'Subregion',
-    }
-    aggregate_df = df[df['Type'].isin(region_subregion)][columns].rename(columns=rename_columns)
-
-    columns = ['Aggregate']
+    aggregate = ['Aggregate']
     x_var = 'Mean Crude Death'
     y_var = 'std dev Crude Death'
-    plot_df = aggregate_df.groupby(by=columns).mean().rename(columns={'Crude Death': x_var}).merge(
-        right=aggregate_df.groupby(by=columns).std().rename(columns={'Crude Death': y_var}), on=columns).reset_index()
+    plot_df = aggregate_df.groupby(by=aggregate).mean().rename(columns={'Crude Death': x_var}).merge(
+        right=aggregate_df.groupby(by=aggregate).std().rename(columns={'Crude Death': y_var}),
+        on=aggregate).reset_index()
+
+    # merge/join in the parent codes so we can use them for the hues below
+    plot_df = plot_df.merge(right=codes_df, on='Aggregate')
 
     set_style(style=SEABORN_STYLE)
-
     figure_scatterplot, axes_scatterplot = subplots()
-    result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False,
-                                # hue='hue',
-                                legend=False, aspect=2, )
+    hue = 'Parent code'
+    result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, hue=hue, legend=False, aspect=2, )
     label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['Aggregate'], ax=gca())
     tight_layout()
     savefig(fname=OUTPUT_FOLDER + 'aggregate_mean_stddev_scatterplot.png', format='png')
