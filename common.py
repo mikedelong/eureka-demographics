@@ -1,5 +1,9 @@
+from typing import Optional
+from typing import Union
+
 from pandas import DataFrame
 from pandas import concat
+from pandas import read_excel
 
 
 # https://stackoverflow.com/questions/46027653/adding-labels-in-x-y-scatter-plot-with-seaborn
@@ -7,6 +11,11 @@ def label_point(x, y, val, ax):
     rows_df = concat({'x': x, 'y': y, 'value': val}, axis=1)
     for i, point in rows_df.iterrows():
         ax.text(point['x'] + 0.03, point['y'] + 0.01, str(point['value']), fontsize='x-small')
+
+
+def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
+    result_df = read_excel(engine='openpyxl', header=header, io=io, usecols=usecols)
+    return result_df
 
 
 def reshape(input_df: DataFrame, x_column: str, y_columns: list[str], y_column_name: str,
