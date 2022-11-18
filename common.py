@@ -2,6 +2,13 @@ from pandas import DataFrame
 from pandas import concat
 
 
+# https://stackoverflow.com/questions/46027653/adding-labels-in-x-y-scatter-plot-with-seaborn
+def label_point(x, y, val, ax):
+    rows_df = concat({'x': x, 'y': y, 'value': val}, axis=1)
+    for i, point in rows_df.iterrows():
+        ax.text(point['x'] + 0.03, point['y'] + 0.01, str(point['value']), fontsize='x-small')
+
+
 def reshape(input_df: DataFrame, x_column: str, y_columns: list[str], y_column_name: str,
             value_column_name: str) -> DataFrame:
     def reshape_helper(input_df_: DataFrame, y_column: str, y_column_name_: str, value_column_name_: str) -> DataFrame:
@@ -13,6 +20,7 @@ def reshape(input_df: DataFrame, x_column: str, y_columns: list[str], y_column_n
                                        y_column_name_=y_column_name, value_column_name_=value_column_name) for y_column
                         in y_columns], ignore_index=True)
     return result_df
+
 
 COLUMNS = ['Index', 'Variant', 'Region, subregion, country or area *', 'Notes',
            'Location code', 'ISO3 Alpha-code', 'ISO2 Alpha-code', 'SDMX code**',
