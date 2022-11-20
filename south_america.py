@@ -5,8 +5,6 @@ from logging import INFO
 from logging import basicConfig
 from logging import getLogger
 from pathlib import Path
-from typing import Optional
-from typing import Union
 
 from arrow import now
 from matplotlib.pyplot import close
@@ -15,24 +13,13 @@ from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
 from matplotlib.pyplot import tight_layout
 from pandas import DataFrame
-from pandas import concat
-from pandas import read_excel
 from seaborn import lineplot
 from seaborn import lmplot
 from seaborn import set_style
 
 from common import COLUMNS
+from common import label_point
 from common import read_excel_dataframe
-
-
-# https://stackoverflow.com/questions/46027653/adding-labels-in-x-y-scatter-plot-with-seaborn
-def label_point(x, y, val, ax):
-    rows_df = concat({'x': x, 'y': y, 'value': val}, axis=1)
-    for i, point in rows_df.iterrows():
-        ax.text(point['x'] + 0.03, point['y'] + 0.01, str(point['value']), fontsize='x-small')
-
-
-
 
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
