@@ -24,12 +24,10 @@ from common import read_excel_dataframe
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 OUTPUT_FOLDER = './plot/'
-SAVE_WORLD_DATA = False
 SEABORN_STYLE = 'darkgrid'
 TO_REPLACE = {'LATIN AMERICA AND THE CARIBBEAN': 'Latin America', 'Bolivia (Plurinational State of)': 'Bolivia',
               'Venezuela (Bolivarian Republic of)': 'Venezuela', 'Saint Martin (French part)': 'Saint Martin',
               'Sint Maarten (Dutch part)': 'Sint Maarten', 'Falkland Islands (Malvinas)': 'Falkland Islands', }
-WORLD_DATA_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_WORLD.xlsx'
 
 if __name__ == '__main__':
     TIME_START = now()
