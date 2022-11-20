@@ -22,6 +22,7 @@ from seaborn import lmplot
 from seaborn import set_style
 
 from common import COLUMNS
+from common import read_excel_dataframe
 
 
 # https://stackoverflow.com/questions/46027653/adding-labels-in-x-y-scatter-plot-with-seaborn
@@ -31,9 +32,6 @@ def label_point(x, y, val, ax):
         ax.text(point['x'] + 0.03, point['y'] + 0.01, str(point['value']), fontsize='x-small')
 
 
-def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
-    result_df = read_excel(engine='openpyxl', header=header, io=io, usecols=usecols)
-    return result_df
 
 
 DATA_FOLDER = './data/'
