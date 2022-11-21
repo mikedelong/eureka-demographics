@@ -5,9 +5,9 @@ from logging import INFO
 from logging import basicConfig
 from logging import getLogger
 from pathlib import Path
-from numpy import nan
 
 from arrow import now
+from numpy import nan
 
 from common import COLUMNS
 from common import read_excel_dataframe
