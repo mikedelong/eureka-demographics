@@ -23,8 +23,6 @@ AGGREGATE_COLUMNS = ['Region, subregion, country or area *', 'Crude Death Rate (
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 OUTPUT_FOLDER = './plot/'
-OTHER_REGIONS = {'World','Development Group','Special other', 'Income Group',}
-REGION_SUBREGION = {'World', 'Region', 'Subregion', }
 RENAME_COLUMNS = {'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
                   'Region, subregion, country or area *': 'Aggregate', }
 SEABORN_STYLE = 'darkgrid'
@@ -42,10 +40,15 @@ if __name__ == '__main__':
     data_file = DATA_FOLDER + INPUT_FILE
     df = read_excel_dataframe(io=data_file, header=16, usecols=COLUMNS)
     LOGGER.info('loaded %d rows from %s', len(df), data_file)
+    df = df[df['Type'] != 'Label/Separator']
+    df = df[df['Region, subregion, country or area *'] != 'Holy See']
 
     set_style(style=SEABORN_STYLE)
-    for index, aggregate in enumerate([REGION_SUBREGION, OTHER_REGIONS]):
-        codes_df = df[['Region, subregion, country or area *', 'Type', 'Parent code', 'Location code']].drop_duplicates()
+    for index, aggregate in enumerate(
+            [{'World', 'Region', 'Subregion', }, {'World', 'Development Group', 'Special other', 'Income Group', },
+             {'World', 'Country/Area'}, ]):
+        codes_df = df[
+            ['Region, subregion, country or area *', 'Type', 'Parent code', 'Location code']].drop_duplicates()
         codes_df = codes_df[codes_df['Type'].isin(aggregate)]
         # map the regions' parent codes onto their location codes
         codes_df['Parent code'] = codes_df.apply(axis=1,
@@ -67,10 +70,11 @@ if __name__ == '__main__':
 
         figure_scatterplot, axes_scatterplot = subplots()
         hue = 'Parent code'
-        result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, hue=hue, legend=False, aspect=2, )
+        result_scatterplot = lmplot(aspect=1.6, data=plot_df, fit_reg=False, height=6, hue=hue, legend=False, x=x_var,
+                                    y=y_var, )
         label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['Aggregate'], ax=gca())
         tight_layout()
-        fname = OUTPUT_FOLDER + 'aggregate_mean_stddev_scatterplot_{}.png'.format(index+1)
+        fname = OUTPUT_FOLDER + 'aggregate_mean_stddev_scatterplot_{}.png'.format(index + 1)
         LOGGER.info('saving plot to %s', fname)
         savefig(fname=fname, format='png')
         close(fig=figure_scatterplot)
