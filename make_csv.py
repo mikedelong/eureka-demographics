@@ -84,6 +84,7 @@ if __name__ == '__main__':
 
     df = df.drop(columns=DROP_COLUMNS)
     df = df[df['Type'] != 'Label/Separator']
+    df = df[df['Region, subregion, country or area *'] != 'Holy See']
     df['Year'] = df['Year'].astype(int)
     for column in FLOAT_COLUMNS:
         LOGGER.info('float <- %s', column)
