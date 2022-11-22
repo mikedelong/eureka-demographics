@@ -9,8 +9,10 @@ from typing import Mapping
 
 from arrow import now
 from matplotlib.pyplot import close
+from matplotlib.pyplot import legend
 from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
+from matplotlib.pyplot import tight_layout
 from pandas import DataFrame
 from pandas import Series
 from seaborn import lineplot
@@ -33,6 +35,7 @@ COUNTRIES = {
     'Iraq': ['Iraq', 'Iran', 'Kuwait', 'Turkey', 'Syria'],
     'North Korea': ['North Korea', 'South Korea', 'Japan'],
     'Rwanda': ['Rwanda', 'Uganda', 'Burundi', 'Tanzania'],
+    'South Africa': ['South Africa', 'Botswana', 'Lesotho', 'Zimbabwe', 'Namibia'],
     'South Sudan': ['Ethiopia', 'South Sudan', 'Uganda', 'Kenya'],
     'Vietnam': ['Viet Nam', 'Laos', 'Thailand'],
 }
@@ -88,8 +91,10 @@ if __name__ == '__main__':
 
         # now we can get the slice of data we need
         plot_df = data_df[data_df['Location code'].isin(our_country_codes)]
-        figure_lineplot, axes_lineplot = subplots()
+        figure_lineplot, axes_lineplot = subplots(figsize=(7, 5))
         result_lineplot = lineplot(data=plot_df, x='Year', y='Crude Death', hue='Area', )
+        legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+        tight_layout()
         fname = OUTPUT_FOLDER + '{}_cdr_lineplot.png'.format(public_name.replace(' ', '_'))
         LOGGER.info('plot file: %s', fname)
         savefig(fname=fname, format='png')
