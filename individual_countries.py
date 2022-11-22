@@ -27,6 +27,15 @@ def columns_to_dict(input_df: DataFrame, key_column: str, value_column: str) -> 
 
 AGGREGATE_COLUMNS = ['Year', 'Region, subregion, country or area *', 'Crude Death Rate (deaths per 1,000 population)',
                      'Location code', 'Parent code']
+COUNTRIES = {
+    'Cambodia': ['Cambodia', 'Viet Nam', 'Laos', 'Thailand'],
+    'East Timor': ['East Timor', 'Indonesia'],
+    'Iraq': ['Iraq', 'Iran', 'Kuwait', 'Turkey', 'Syria'],
+    'North Korea': ['North Korea', 'South Korea', 'Japan'],
+    'Rwanda': ['Rwanda', 'Uganda', 'Burundi', 'Tanzania'],
+    'South Sudan': ['Ethiopia', 'South Sudan', 'Uganda', 'Kenya'],
+    'Vietnam': ['Viet Nam', 'Laos', 'Thailand'],
+}
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
 OUTPUT_FOLDER = './plot/'
@@ -35,7 +44,12 @@ RENAME_COLUMNS = {'Crude Death Rate (deaths per 1,000 population)': 'Crude Death
 RENAME_COUNTRIES = {
     'Dem. People\'s Republic of Korea': 'North Korea',
     'Lao People\'s Democratic Republic': 'Laos',
+    'Iran (Islamic Republic of)': 'Iran',
+    'Türkiye': 'Turkey',
     'Republic of Korea': 'South Korea',
+    'Syrian Arab Republic': 'Syria',
+    'Timor-Leste': 'East Timor',
+    'United Republic of Tanzania': 'Tanzania',
 }
 SEABORN_STYLE = 'darkgrid'
 
@@ -59,12 +73,9 @@ if __name__ == '__main__':
     data_df['Area'] = data_df['Area'].replace(RENAME_COUNTRIES)
     country_code_dict = columns_to_dict(input_df=data_df, key_column='Area', value_column='Location code')
     parent_code_dict = columns_to_dict(input_df=data_df, key_column='Location code', value_column='Parent code')
-    countries = {'South Sudan': ['Ethiopia', 'South Sudan', 'Uganda', 'Kenya'],
-                 'North Korea': ['North Korea', 'South Korea', 'Japan'],
-                 'Cambodia': ['Cambodia', 'Viet Nam', 'Laos', 'Thailand']}
 
     set_style(style=SEABORN_STYLE)
-    for public_name, country_values in countries.items():
+    for public_name, country_values in COUNTRIES.items():
         LOGGER.info('country: %s', public_name)
         # get the country code for each country
         our_country_codes = {country_code_dict[country] for country in country_values}
