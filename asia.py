@@ -6,7 +6,6 @@ from logging import basicConfig
 from logging import getLogger
 from pathlib import Path
 from typing import Optional
-from typing import Union
 
 from arrow import now
 from matplotlib.pyplot import close
@@ -16,7 +15,6 @@ from matplotlib.pyplot import tight_layout
 from numpy import nan
 from pandas import DataFrame
 from pandas import melt
-from pandas import read_excel
 from scipy.stats import linregress
 from seaborn import lineplot
 from seaborn import lmplot
@@ -26,6 +24,7 @@ from seaborn import scatterplot
 from seaborn import set_style
 
 from common import COLUMNS
+from common import read_excel_dataframe
 
 
 def make_plots(column_name: str, column_short_name: str, input_df: DataFrame, fname_short: str,
@@ -57,11 +56,6 @@ def make_plots(column_name: str, column_short_name: str, input_df: DataFrame, fn
     close(fig=figure_)
     rvalue = linregress(x=work_df['Year'], y=work_df[column_short_name]).rvalue
     return rvalue * rvalue
-
-
-def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
-    result_df = read_excel(engine='openpyxl', header=header, io=io, usecols=usecols)
-    return result_df
 
 
 DATA_FOLDER = './data/'
