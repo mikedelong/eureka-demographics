@@ -22,11 +22,10 @@ def read_url_csv(url: str) -> DataFrame:
     return result_df
 
 
-CAUSES = ['Unintentional injuries', 'All causes', 'Alzheimer\'s disease',
-          'Stroke', 'CLRD', 'Diabetes', 'Heart disease',
+CAUSES = ['Unintentional injuries', 'All causes', 'Alzheimer\'s disease', 'Stroke', 'CLRD', 'Diabetes', 'Heart disease',
           'Influenza and pneumonia', 'Suicide', 'Cancer', 'Kidney disease']
 DATA_FOLDER = './data/'
-FIGSIZE=(12, 9)
+FIGSIZE = (12, 9)
 INPUT_FILE = 'bi63-dtpu-rows.csv'
 OUTPUT_FOLDER = './plot/'
 REFRESH_DATA = False
