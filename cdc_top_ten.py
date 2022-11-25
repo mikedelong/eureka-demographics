@@ -94,15 +94,25 @@ if __name__ == '__main__':
     order = [item[0] for item in totals]
     order = [item for item in order if item != 'Other'] + ['Other']
     plot_df = plot_df[order]
-    figure, axes = subplots(figsize=FIGSIZE)
+    figure_area, axes_area = subplots(figsize=FIGSIZE)
     # we need to supply a colormap to keep from repeating colors
-    plot_result = plot_df.plot.area(ax=axes, colormap=COLORMAP)
-    plot_result.get_legend().set_bbox_to_anchor((1, 1))
-    axes.set_xticks(ticks=plot_df.index)
+    plot_area_result = plot_df.plot.area(ax=axes_area, colormap=COLORMAP)
+    plot_area_result.get_legend().set_bbox_to_anchor((1, 1))
+    axes_area.set_xticks(ticks=plot_df.index)
     tight_layout()
-    fname = '{}{}_stacked_area.png'.format(OUTPUT_FOLDER, 'us_top_ten')
-    savefig(format='png', fname=fname, )
-    close(fig=figure)
-    LOGGER.info('saved plot in %s', fname)
+    fname_area = '{}{}_stacked_area.png'.format(OUTPUT_FOLDER, 'us_top_ten')
+    savefig(format='png', fname=fname_area, )
+    close(fig=figure_area)
+    LOGGER.info('saved plot in %s', fname_area)
+
+    # now add a pie chart of the last year
+    year = plot_df.index.max()
+    figure_pie, axes_pie = subplots(figsize=FIGSIZE)
+    plot_pie_result = plot_df[plot_df.index == year].squeeze().plot.pie(ax=axes_pie, colormap=COLORMAP)
+    tight_layout()
+    fname_pie = '{}{}_pie_{}.png'.format(OUTPUT_FOLDER, 'us_top_ten', year)
+    savefig(format='png', fname=fname_pie, )
+    close(fig=figure_pie)
+    LOGGER.info('saved plot in %s', fname_pie)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
