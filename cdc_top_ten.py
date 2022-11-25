@@ -26,6 +26,7 @@ def read_url_csv(url: str) -> DataFrame:
 
 CAUSES = ['Unintentional injuries', 'All causes', 'Alzheimer\'s disease', 'Stroke', 'CLRD', 'Diabetes', 'Heart disease',
           'Influenza and pneumonia', 'Suicide', 'Cancer', 'Kidney disease']
+COLORMAP = 'tab20'
 DATA_FOLDER = './data/'
 FIGSIZE = (12, 9)
 INPUT_FILE = 'bi63-dtpu-rows.csv'
@@ -94,7 +95,8 @@ if __name__ == '__main__':
     order = [item for item in order if item != 'Other'] + ['Other']
     plot_df = plot_df[order]
     figure, axes = subplots(figsize=FIGSIZE)
-    plot_result = plot_df.plot.area(ax=axes)
+    # we need to supply a colormap to keep from repeating colors
+    plot_result = plot_df.plot.area(ax=axes, colormap=COLORMAP)
     plot_result.get_legend().set_bbox_to_anchor((1, 1))
     axes.set_xticks(ticks=plot_df.index)
     tight_layout()
