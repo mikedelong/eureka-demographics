@@ -15,6 +15,8 @@ from pandas import DataFrame
 from pandas import read_csv
 from seaborn import histplot
 from seaborn import set_style
+from pandas import Series
+from pandas import concat
 
 
 def read_url_csv(url: str) -> DataFrame:
@@ -57,7 +59,18 @@ if __name__ == '__main__':
 
     us_df['Deaths'] = us_df['Deaths'].astype(int)
     us_df['Year'] = us_df['Year'].astype(int)
-    us_df = us_df[us_df['Cause Name'] != 'All causes']
+    us_df = us_df.drop(columns=['113 Cause Name', 'State', 'Age-adjusted Death Rate'])
+    # figure out the Other deaths
+    all_causes_df = us_df[us_df['Cause Name'] == 'All causes'].drop(columns=['Cause Name'])
+    top_ten_df = us_df[us_df['Cause Name'] != 'All causes']
+    top_ten_df = top_ten_df.drop(columns=['Cause Name']).groupby(by=['Year'], axis=0).sum().reset_index()
+    all_causes_dict = Series(all_causes_df['Deaths'].values, index=all_causes_df['Year'].values).to_dict()
+    top_ten_dict = Series(top_ten_df['Deaths'].values, index=top_ten_df['Year'].values).to_dict()
+    other_dict = {year: all_causes_dict[year] - top_ten_dict[year] for year in all_causes_dict.keys()}
+    other_df = DataFrame(data={'Year': list(other_dict.keys()), 'Cause Name': ['Other'] * len(other_dict),
+                               'Deaths': list(other_dict.values())})
+
+    us_df = concat([us_df[us_df['Cause Name'] != 'All causes'], other_df])
 
     set_style(style=SEABORN_STYLE)
     figure, axes = subplots(figsize=FIGSIZE)
@@ -77,7 +90,9 @@ if __name__ == '__main__':
     # we need to put the columns in a particular order to get a nice-looking plot
     totals = {column: plot_df[column].sum() for column in plot_df.columns.tolist()}
     totals = sorted([(key, value) for key, value in totals.items()], key=lambda x: x[1], reverse=True)
-    plot_df = plot_df[[item[0] for item in totals]]
+    order = [item[0] for item in totals]
+    order = [item for item in order if item != 'Other'] + ['Other']
+    plot_df = plot_df[order]
     figure, axes = subplots(figsize=FIGSIZE)
     plot_result = plot_df.plot.area(ax=axes)
     plot_result.get_legend().set_bbox_to_anchor((1, 1))
