@@ -17,6 +17,7 @@ def read_url_csv(url: str) -> DataFrame:
 
 DATA_FOLDER = './data/'
 INPUT_FILE = 'Underlying Cause of Death, 1999-2020.txt'
+OUTPUT_FILE = 'Wonder-cause-of-death-1999-2020.csv'
 SCALING = 1000
 
 if __name__ == '__main__':
@@ -34,9 +35,10 @@ if __name__ == '__main__':
     df = df.drop(columns=['Notes', 'Year Code', 'Crude Rate']).dropna()
     for column in ['Year', 'Deaths', 'Population']:
         df[column] = df[column].astype(int)
-    unreliable_df = df[df['Crude Rate'] == 'Unreliable']
     df['crude rate'] = SCALING * df['Deaths']/df['Population']
 
-    LOGGER.info(df.shape)
+    output_file = DATA_FOLDER + OUTPUT_FILE
+    LOGGER.info('writing %d rows to %s', len(df), output_file)
+    df.to_csv(path_or_buf=output_file, index=False)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
