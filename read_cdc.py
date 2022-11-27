@@ -1,6 +1,7 @@
 """
 Load and parse CSV data from the CDC
 """
+import math
 from logging import INFO
 from logging import basicConfig
 from logging import getLogger
@@ -9,6 +10,7 @@ from pathlib import Path
 from arrow import now
 from pandas import DataFrame
 from pandas import read_csv
+from math import log10
 
 
 def read_url_csv(url: str) -> DataFrame:
@@ -36,6 +38,7 @@ if __name__ == '__main__':
     for column in ['Year', 'Deaths', 'Population']:
         df[column] = df[column].astype(int)
     df['crude rate'] = SCALING * df['Deaths']/df['Population']
+    df['log10 deaths'] = df['Deaths'].apply(log10)
 
     output_file = DATA_FOLDER + OUTPUT_FILE
     LOGGER.info('writing %d rows to %s', len(df), output_file)
