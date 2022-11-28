@@ -17,7 +17,6 @@ from pandas import DataFrame
 from pandas import Series
 from pandas import read_csv
 from seaborn import lmplot
-from math import log10
 
 from common import label_point
 
@@ -27,6 +26,7 @@ def read_url_csv(url: str) -> DataFrame:
     return result_df
 
 
+ASPECT = 1.6
 DATA_FOLDER = './data/'
 INPUT_FILE = 'Underlying Cause of Death, 1999-2020.txt'
 MAP_LABELS = {
@@ -81,19 +81,28 @@ if __name__ == '__main__':
     mean_df = df[[column, 'Deaths']].groupby(by=[column]).mean().reset_index().rename(columns={'Deaths': mean})
     total = 'total Deaths'
     total_df = df[[column, 'Deaths']].groupby(by=[column]).sum().reset_index().rename(columns={'Deaths': total})
-    log10_ = 'log10 total Deaths'
-    total_df[log10_] = total_df[total].apply(log10)
     y_var = 'std dev Deaths'
     std_df = df[[column, 'Deaths']].groupby(by=[column]).std().reset_index().rename(columns={'Deaths': y_var})
-    x_var = [mean, total, log10_][0]
-    plot_df = (total_df if x_var in {total, log10_} else mean_df).merge(right=std_df, how='inner', on=column).fillna(0)
+    x_var = [mean, total][0]
+    plot_df = (total_df if x_var in {total} else mean_df).merge(right=std_df, how='inner', on=column).fillna(0)
     plot_df['label'] = plot_df[column].apply(func=lambda x: MAP_LABELS[x] if x in MAP_LABELS.keys() else x)
 
     figure_scatterplot, axes_scatterplot = subplots()
-    result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, legend=False, aspect=2, )
+    result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, legend=False, aspect=ASPECT, )
     label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['label'], ax=gca())
     tight_layout()
     savefig(fname=OUTPUT_FOLDER + 'cdc_113_scatterplot.png', format='png')
+    close(fig=figure_scatterplot)
+    del axes_scatterplot
+    del result_scatterplot
+
+    # cut away the large values so we can see the inner, smaller results
+    plot_df = plot_df[(plot_df[mean] < 200000) & (plot_df[y_var] < 20000)]
+    figure_scatterplot, axes_scatterplot = subplots()
+    result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, legend=False, aspect=ASPECT, )
+    label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['label'], ax=gca())
+    tight_layout()
+    savefig(fname=OUTPUT_FOLDER + 'cdc_113_small_scatterplot.png', format='png')
     close(fig=figure_scatterplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
