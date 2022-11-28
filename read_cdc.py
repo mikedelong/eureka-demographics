@@ -71,11 +71,15 @@ if __name__ == '__main__':
     LOGGER.info('writing %d rows to %s', len(df), output_file)
     df.to_csv(path_or_buf=output_file, index=False)
 
-    # let's start building our scatterplot
+    # we need to split the major groups from the minor groups
     columns = ['ICD-10 113 Cause List Code', 'ICD-10 113 Cause List']
+    major_df = df[~df[columns[1]].str.contains('#')]
+    minor_df = df[df[columns[1]].str.contains('#')]
+    # let's start building our scatterplot
     column = columns[0]
     name_dict = Series(df[columns[1]].values, index=df[columns[0]]).to_dict()
     replace_labels = {'GR113-{}'.format(item): name_dict['GR113-{}'.format(item)] for item in REPLACE_LABELS}
+    short_name_dict = {key: value.replace('#', '').split('(')[0].rstrip() for key, value in name_dict.items()}
 
     mean = 'mean Deaths'
     mean_df = df[[column, 'Deaths']].groupby(by=[column]).mean().reset_index().rename(columns={'Deaths': mean})
@@ -86,23 +90,27 @@ if __name__ == '__main__':
     x_var = [mean, total][0]
     plot_df = (total_df if x_var in {total} else mean_df).merge(right=std_df, how='inner', on=column).fillna(0)
     plot_df['label'] = plot_df[column].apply(func=lambda x: MAP_LABELS[x] if x in MAP_LABELS.keys() else x)
+    plot_df['short name'] = plot_df[column].apply(func=lambda x: short_name_dict[x])
+    plot_df['rank'] = plot_df[x_var].rank(ascending=False)
 
-    figure_scatterplot, axes_scatterplot = subplots()
-    result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, legend=False, aspect=ASPECT, )
-    label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['label'], ax=gca())
-    tight_layout()
-    savefig(fname=OUTPUT_FOLDER + 'cdc_113_scatterplot.png', format='png')
-    close(fig=figure_scatterplot)
-    del axes_scatterplot
-    del result_scatterplot
+    do_plots = False
+    if do_plots:
+        figure_scatterplot, axes_scatterplot = subplots()
+        result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, legend=False, aspect=ASPECT, )
+        label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['label'], ax=gca())
+        tight_layout()
+        savefig(fname=OUTPUT_FOLDER + 'cdc_113_scatterplot.png', format='png')
+        close(fig=figure_scatterplot)
+        del axes_scatterplot
+        del result_scatterplot
 
-    # cut away the large values so we can see the inner, smaller results
-    plot_df = plot_df[(plot_df[mean] < 200000) & (plot_df[y_var] < 20000)]
-    figure_scatterplot, axes_scatterplot = subplots()
-    result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, legend=False, aspect=ASPECT, )
-    label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['label'], ax=gca())
-    tight_layout()
-    savefig(fname=OUTPUT_FOLDER + 'cdc_113_small_scatterplot.png', format='png')
-    close(fig=figure_scatterplot)
+        # cut away the large values so we can see the inner, smaller results
+        plot_df = plot_df[(plot_df[mean] < 200000) & (plot_df[y_var] < 20000)]
+        figure_scatterplot, axes_scatterplot = subplots()
+        result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, legend=False, aspect=ASPECT, )
+        label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['label'], ax=gca())
+        tight_layout()
+        savefig(fname=OUTPUT_FOLDER + 'cdc_113_small_scatterplot.png', format='png')
+        close(fig=figure_scatterplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
