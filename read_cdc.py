@@ -43,4 +43,10 @@ if __name__ == '__main__':
     LOGGER.info('writing %d rows to %s', len(df), output_file)
     df.to_csv(path_or_buf=output_file, index=False)
 
+    # let's start building our scatterplot
+    column = 'ICD-10 113 Cause List Code'
+    mean_df = df[[column, 'Deaths']].groupby(by=[column]).mean().reset_index()
+    std_df = df[[column, 'Deaths']].groupby(by=[column]).std().reset_index()
+
+
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
