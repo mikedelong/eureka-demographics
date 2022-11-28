@@ -14,6 +14,7 @@ from matplotlib.pyplot import savefig
 from matplotlib.pyplot import subplots
 from matplotlib.pyplot import tight_layout
 from pandas import DataFrame
+from pandas import Series
 from pandas import read_csv
 from seaborn import lmplot
 
@@ -27,8 +28,24 @@ def read_url_csv(url: str) -> DataFrame:
 
 DATA_FOLDER = './data/'
 INPUT_FILE = 'Underlying Cause of Death, 1999-2020.txt'
+MAP_LABELS = {
+    'GR113-018': 'Other and unspecified infectious and parasitic diseases',
+    'GR113-019': 'Malignant neoplasms',
+    'GR113-027': 'Malignant neoplasms of trachea, bronchus and lung',
+    'GR113-053': 'Major cardiovascular diseases',
+    'GR113-054': 'Diseases of heart',
+    'GR113-058': 'Ischemic heart diseases',
+    'GR113-059': 'Acute myocardial infarction',
+    'GR113-061': 'Other forms of chronic ischemic heart disease',
+    'GR113-063': 'All other forms of chronic ischemic heart disease',
+    'GR113-086': 'Other chronic lower respiratory diseases',
+    'GR113-111': 'All other diseases (Residual)',
+    'GR113-122': 'Accidental poisoning and exposure to noxious substances',
+    'GR113-137': 'COVID-19',
+}
 OUTPUT_FILE = 'Wonder-cause-of-death-1999-2020.csv'
 OUTPUT_FOLDER = './plot_cdc/'
+REPLACE_LABELS = {'018', '019', '027', '053', '054', '058', '059', '061', '063', '086', '111', '122', '137'}
 SCALING = 1000
 
 if __name__ == '__main__':
@@ -54,16 +71,24 @@ if __name__ == '__main__':
     df.to_csv(path_or_buf=output_file, index=False)
 
     # let's start building our scatterplot
-    column = 'ICD-10 113 Cause List Code'
+    columns = ['ICD-10 113 Cause List Code', 'ICD-10 113 Cause List']
+    column = columns[0]
+    name_dict = Series(df[columns[1]].values, index=df[columns[0]]).to_dict()
+    replace_labels = {'GR113-{}'.format(item): name_dict['GR113-{}'.format(item)] for item in REPLACE_LABELS}
+
     mean = 'mean Deaths'
-    y_var = 'std dev Deaths'
     mean_df = df[[column, 'Deaths']].groupby(by=[column]).mean().reset_index().rename(columns={'Deaths': mean})
+    total = 'total Deaths'
+    total_df = df[[column, 'Deaths']].groupby(by=[column]).sum().reset_index().rename(columns={'Deaths': total})
+    y_var = 'std dev Deaths'
     std_df = df[[column, 'Deaths']].groupby(by=[column]).std().reset_index().rename(columns={'Deaths': y_var})
-    plot_df = DataFrame(mean_df).merge(right=std_df, how='inner', on=column).fillna(0)
+    x_var = [mean, total][0]
+    plot_df = (total_df if x_var == total else mean_df).merge(right=std_df, how='inner', on=column).fillna(0)
+    plot_df['label'] = plot_df[column].apply(func=lambda x: MAP_LABELS[x] if x in MAP_LABELS.keys() else x)
 
     figure_scatterplot, axes_scatterplot = subplots()
-    result_scatterplot = lmplot(data=plot_df, x=mean, y=y_var, fit_reg=False, legend=False, aspect=2, )
-    label_point(x=plot_df[mean], y=plot_df[y_var], val=plot_df[column], ax=gca())
+    result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, legend=False, aspect=2, )
+    label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['label'], ax=gca())
     tight_layout()
     savefig(fname=OUTPUT_FOLDER + 'cdc_113_scatterplot.png', format='png')
     close(fig=figure_scatterplot)
