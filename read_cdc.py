@@ -17,6 +17,7 @@ from pandas import DataFrame
 from pandas import Series
 from pandas import read_csv
 from seaborn import lmplot
+from math import log10
 
 from common import label_point
 
@@ -80,10 +81,12 @@ if __name__ == '__main__':
     mean_df = df[[column, 'Deaths']].groupby(by=[column]).mean().reset_index().rename(columns={'Deaths': mean})
     total = 'total Deaths'
     total_df = df[[column, 'Deaths']].groupby(by=[column]).sum().reset_index().rename(columns={'Deaths': total})
+    log10_ = 'log10 total Deaths'
+    total_df[log10_] = total_df[total].apply(log10)
     y_var = 'std dev Deaths'
     std_df = df[[column, 'Deaths']].groupby(by=[column]).std().reset_index().rename(columns={'Deaths': y_var})
-    x_var = [mean, total][0]
-    plot_df = (total_df if x_var == total else mean_df).merge(right=std_df, how='inner', on=column).fillna(0)
+    x_var = [mean, total, log10_][0]
+    plot_df = (total_df if x_var in {total, log10_} else mean_df).merge(right=std_df, how='inner', on=column).fillna(0)
     plot_df['label'] = plot_df[column].apply(func=lambda x: MAP_LABELS[x] if x in MAP_LABELS.keys() else x)
 
     figure_scatterplot, axes_scatterplot = subplots()
