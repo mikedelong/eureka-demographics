@@ -27,7 +27,7 @@ def read_url_csv(url: str) -> DataFrame:
 
 
 ASPECT = 1.6
-DATA_FOLDER = './data/'
+DATA_FOLDER = './data_cdc/'
 INPUT_FILE = 'Underlying Cause of Death, 1999-2020.txt'
 MAP_LABELS = {
     'GR113-018': 'Other and unspecified infectious and parasitic diseases',
@@ -45,7 +45,8 @@ MAP_LABELS = {
     'GR113-137': 'COVID-19',
 }
 OUTPUT_FILE = 'Wonder-cause-of-death-1999-2020.csv'
-OUTPUT_FOLDER = './plot_cdc/'
+OUTPUT_FOLDER = './data/'
+PLOT_FOLDER = './plot_cdc/'
 REPLACE_LABELS = {'018', '019', '027', '053', '054', '058', '059', '061', '063', '086', '111', '122', '137'}
 SCALING = 1000
 
@@ -55,7 +56,7 @@ if __name__ == '__main__':
     basicConfig(format='%(asctime)s : %(name)s : %(levelname)s : %(message)s', level=INFO, )
     LOGGER.info('started')
 
-    for folder in [DATA_FOLDER, OUTPUT_FOLDER]:
+    for folder in [DATA_FOLDER, OUTPUT_FOLDER, PLOT_FOLDER]:
         LOGGER.info('creating folder %s if it does not exist', folder)
         Path(folder).mkdir(parents=True, exist_ok=True)
 
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     df['crude rate'] = SCALING * df['Deaths'] / df['Population']
     df['log10 deaths'] = df['Deaths'].apply(log10)
 
-    output_file = DATA_FOLDER + OUTPUT_FILE
+    output_file = OUTPUT_FOLDER + OUTPUT_FILE
     LOGGER.info('writing %d rows to %s', len(df), output_file)
     df.to_csv(path_or_buf=output_file, index=False)
 
@@ -99,7 +100,7 @@ if __name__ == '__main__':
         result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, legend=False, aspect=ASPECT, )
         label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['label'], ax=gca())
         tight_layout()
-        savefig(fname=OUTPUT_FOLDER + 'cdc_113_scatterplot.png', format='png')
+        savefig(fname=PLOT_FOLDER + 'cdc_113_scatterplot.png', format='png')
         close(fig=figure_scatterplot)
         del axes_scatterplot
         del result_scatterplot
@@ -110,7 +111,7 @@ if __name__ == '__main__':
         result_scatterplot = lmplot(data=plot_df, x=x_var, y=y_var, fit_reg=False, legend=False, aspect=ASPECT, )
         label_point(x=plot_df[x_var], y=plot_df[y_var], val=plot_df['label'], ax=gca())
         tight_layout()
-        savefig(fname=OUTPUT_FOLDER + 'cdc_113_small_scatterplot.png', format='png')
+        savefig(fname=PLOT_FOLDER + 'cdc_113_small_scatterplot.png', format='png')
         close(fig=figure_scatterplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
