@@ -6,21 +6,14 @@ from logging import INFO
 from logging import basicConfig
 from logging import getLogger
 from pathlib import Path
-from typing import Optional
-from typing import Union
 
 from arrow import now
 from pandas import DataFrame
-from pandas import read_excel
 from pandas import to_datetime
 from plotly.express import scatter
 from plotly.io import to_html
 
-
-def read_excel_dataframe(io: str, header: int, usecols: Optional[Union[list, int]]) -> DataFrame:
-    result_df = read_excel(engine='openpyxl', header=header, io=io, usecols=usecols)
-    return result_df
-
+from common import read_excel_dataframe
 
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
