@@ -21,6 +21,7 @@ from seaborn import barplot
 from plotly.io import to_html
 from markdown2 import markdown
 
+
 def get_excel_dataframe(io: str) -> DataFrame:
     result_df = read_excel(io=io)
     return result_df
@@ -77,9 +78,9 @@ if __name__ == '__main__':
     plotly_bar.write_html(OUTPUT_FOLDER + 'aggregate_lynchings_bar.html', )
 
     div = to_html(fig=plotly_bar, full_html=False)
-    md_input = ['# Lynching data from two sources \n' + \
-        'Here is the preamble text.',
-                      'And here is the footer text.']
+    md_input = ['# Lynching data from two sources \n' +
+                'Here is the preamble text.',
+                'And here is the footer text.']
 
     html_result = [markdown(text=item) for item in md_input]
 
@@ -87,6 +88,5 @@ if __name__ == '__main__':
         output_fp.write(
             ' '.join([html_result[0], div, html_result[1]])
         )
-
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))

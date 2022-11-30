@@ -79,18 +79,13 @@ if __name__ == '__main__':
     population_df['serialtime'] = population_df['date-as-date'].apply(
         lambda x: (x.to_pydatetime().date() - min_date).days)
     # todo put dates on the x axis ticks
-    scatter_plot = scatter(data_frame=population_df, x='serialtime', y='population',
-                           trendline='ols',
-                           title='World Population 1/1950 to 7/2021'
-                           ).update_xaxes(
-        tickvals=population_df['date'],
-        title='date',
-        # tickmode='array',
-        ticktext=[date.strftime('%Y') for date in population_df['date']],
-    )
+    population_with_trendline_plot = scatter(data_frame=population_df, height=400,
+                                             title='World Population 1/1950 to 7/2021',
+                                             trendline='ols', x='serialtime', y='population',
+                                             ).update_xaxes(tickvals=population_df['date'], title='date', )
 
-    with open(file=OUTPUT_FOLDER + 'world_population.scatter.txt', mode='w') as output_fp:
-        output_fp.write(to_html(fig=scatter_plot, full_html=False))
+    with open(file=OUTPUT_FOLDER + 'world_population.scatter_with_trendline.txt', mode='w') as output_fp:
+        output_fp.write(to_html(fig=population_with_trendline_plot, full_html=False))
 
     LOGGER.info('saved population plot')
 
