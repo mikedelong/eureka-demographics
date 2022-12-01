@@ -29,7 +29,7 @@ CAUSE_MAP_FILE = 'causes_map.json'
 COLUMNS = ['ICD-10 113 Cause List', 'ICD-10 113 Cause List Code', 'Year', 'Deaths', 'Population', 'crude rate',
            'log10 deaths']
 DATA_FOLDER = './data/'
-FIGSIZE = (12, 9)
+FIGSIZE = (10, 7)
 INPUT_FILE = 'Wonder-cause-of-death-1999-2020.csv'
 MAKE_PLOTS = True
 OTHER_DATA_FOLDER = './data_cdc/'
