@@ -60,14 +60,7 @@ if __name__ == '__main__':
     covid_df['Deaths'] = 0
     df = concat([df, covid_df])
 
-    # we can rank by the total deaths (by summing each cause of death along the time series)
-    # or we can rank by the most recent year
-    # rank the codes by total count
-    total = 'total Deaths'
-    total_df = df[[COLUMNS[0], 'Code', 'Deaths']].groupby(by=[COLUMNS[0], 'Code']).sum().reset_index().rename(
-        columns={'Deaths': total})
-    total_df['rank'] = total_df[total].rank(ascending=False)
-
+    # rank by the most recent year
     max_year = df['Year'].max()
     # build the max year ranks if we want to rank by the most recent year
     max_year_deaths = '{} Deaths'.format(max_year)
