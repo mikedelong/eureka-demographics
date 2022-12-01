@@ -31,7 +31,7 @@ INPUT_FILE = 'Wonder-cause-of-death-1999-2020.csv'
 MAKE_PLOTS = True
 OTHER_DATA_FOLDER = './data_cdc/'
 OUTPUT_FOLDER = './plot_cdc/'
-PLOT_SIZE = 8
+PLOT_SIZE = 7
 
 if __name__ == '__main__':
     TIME_START = now()
@@ -54,14 +54,21 @@ if __name__ == '__main__':
     total = 'total Deaths'
     total_df = df[[COLUMNS[0], 'Code', 'Deaths']].groupby(by=[COLUMNS[0], 'Code']).sum().reset_index().rename(
         columns={'Deaths': total})
-    total_df['rank'] = total_df[total].rank()
-    causes_ranked = DataFrame(total_df).sort_values(by=['rank'])['Code'].tolist()
+    total_df['rank'] = total_df[total].rank(ascending=False)
+    year_2020_df = df[df['Year']==2020][[COLUMNS[0], 'Code', 'Deaths']].reset_index().rename(columns={'Deaths': '2020 Deaths'})
+    year_2020_df['rank'] = year_2020_df['2020 Deaths'].rank(ascending=False)
+    causes_ranked = DataFrame(year_2020_df).sort_values(by=['rank'], ascending=False)['Code'].tolist()
+
+    major_causes = [item for item in df[COLUMNS[0]].unique().tolist() if item.startswith('#')]
+    major_causes_df = total_df[total_df[COLUMNS[0]].isin(major_causes)].sort_values(by=['rank'], ascending=True)
+    major_causes_ranked = major_causes_df['Code'].values
 
     if MAKE_PLOTS:
-        for start in range(0, len(causes_ranked), PLOT_SIZE):
+        # let's do the major causes together
+        for case, start in enumerate(range(0, len(major_causes_ranked), PLOT_SIZE)):
             # swap l_var and r_var to get curves labeled by their code
             l_var, r_var = 'Code', COLUMNS[0]
-            plot_df = melt(frame=df[df['Code'].isin(causes_ranked[start:start + PLOT_SIZE])].drop(columns=[l_var]),
+            plot_df = melt(frame=df[df['Code'].isin(major_causes_ranked[start:start + PLOT_SIZE])].drop(columns=[l_var]),
                            id_vars=['Year', r_var], value_name='Deaths!', ).drop(columns=['variable']).rename(
                 columns={'Deaths!': 'Deaths'})
             if r_var == COLUMNS[0]:
@@ -70,6 +77,9 @@ if __name__ == '__main__':
             figure_, axes_ = subplots()
             hue = [COLUMNS[0], 'Cause'][1]
             _ = lineplot(ax=axes_, data=plot_df, x='Year', y='Deaths', hue=hue)
+            if case == 2:
+                axes_.set(ylim=(0, 30000))
+                pass # fix y max here
             fname = '{}{}_{}_lineplot.png'.format(OUTPUT_FOLDER, 'cdc_113', start)
             tight_layout()
             savefig(format='png', fname=fname, )
