@@ -36,7 +36,6 @@ OUTPUT_FOLDER = './plot_cdc/'
 PLOT_SIZE = 7
 SEABORN_STYLE = 'darkgrid'
 
-
 if __name__ == '__main__':
     TIME_START = now()
     LOGGER = getLogger(__name__, )
@@ -53,15 +52,21 @@ if __name__ == '__main__':
     input_file = DATA_FOLDER + INPUT_FILE
 
     df = read_url_csv(url=input_file, usecols=COLUMNS[:4]).rename(columns={COLUMNS[1]: 'Code'})
-    codes = df['Code'].unique()
+
+    # we can rank by the total deaths (by summing each cause of death along the time series)
+    # or we can rank by the most recent year
     # rank the codes by total count
     total = 'total Deaths'
     total_df = df[[COLUMNS[0], 'Code', 'Deaths']].groupby(by=[COLUMNS[0], 'Code']).sum().reset_index().rename(
         columns={'Deaths': total})
     total_df['rank'] = total_df[total].rank(ascending=False)
-    year_2020_df = df[df['Year']==2020][[COLUMNS[0], 'Code', 'Deaths']].reset_index().rename(columns={'Deaths': '2020 Deaths'})
-    year_2020_df['rank'] = year_2020_df['2020 Deaths'].rank(ascending=False)
-    causes_ranked = DataFrame(year_2020_df).sort_values(by=['rank'], ascending=False)['Code'].tolist()
+
+    max_year = df['Year'].max()
+    # build the max year ranks if we want to rank by the most recent year
+    max_year_deaths = '{} Deaths'.format(max_year)
+    max_year_df = df[df['Year'] == max_year][[COLUMNS[0], 'Code', 'Deaths']].reset_index().rename(
+        columns={'Deaths': max_year_deaths})
+    max_year_df['rank'] = max_year_df[max_year_deaths].rank(ascending=False)
 
     major_causes = [item for item in df[COLUMNS[0]].unique().tolist() if item.startswith('#')]
     major_causes_df = total_df[total_df[COLUMNS[0]].isin(major_causes)].sort_values(by=['rank'], ascending=True)
@@ -73,15 +78,15 @@ if __name__ == '__main__':
         for case, start in enumerate(range(0, len(major_causes_ranked), PLOT_SIZE)):
             # swap l_var and r_var to get curves labeled by their code
             l_var, r_var = 'Code', COLUMNS[0]
-            plot_df = melt(frame=df[df['Code'].isin(major_causes_ranked[start:start + PLOT_SIZE])].drop(columns=[l_var]),
-                           id_vars=['Year', r_var], value_name='Deaths!', ).drop(columns=['variable']).rename(
+            plot_df = melt(
+                frame=df[df['Code'].isin(major_causes_ranked[start:start + PLOT_SIZE])].drop(columns=[l_var]),
+                id_vars=['Year', r_var], value_name='Deaths!', ).drop(columns=['variable']).rename(
                 columns={'Deaths!': 'Deaths'})
             if r_var == COLUMNS[0]:
                 plot_df['Cause'] = plot_df[COLUMNS[0]].apply(lambda x: CAUSES_MAP[x][:30])
 
             figure, axes = subplots(figsize=FIGSIZE)
-            hue = [COLUMNS[0], 'Cause'][1]
-            plot_result = lineplot(ax=axes, data=plot_df, x='Year', y='Deaths', hue=hue)
+            plot_result = lineplot(ax=axes, data=plot_df, x='Year', y='Deaths', hue=[COLUMNS[0], 'Cause'][1])
             if case == 2:
                 axes.set(ylim=(0, 25000))
             fname = '{}{}_{}_lineplot.png'.format(OUTPUT_FOLDER, 'cdc_113', start)
