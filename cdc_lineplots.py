@@ -30,8 +30,50 @@ COLUMNS = ['ICD-10 113 Cause List', 'ICD-10 113 Cause List Code', 'Year', 'Death
            'log10 deaths']
 DATA_FOLDER = './data/'
 FIGSIZE = (10, 7)
+HEART_DISEASE = [
+    'Acute rheumatic fever and chronic rheumatic heart diseases (I00-I09)',
+    'Hypertensive heart disease (I11)',
+    'Hypertensive heart and renal disease (I13)',
+    'Ischemic heart diseases (I20-I25)',
+    'Acute myocardial infarction (I21-I22)',
+    'Other acute ischemic heart diseases (I24)',
+    'Other forms of chronic ischemic heart disease (I20,I25)',
+    'Atherosclerotic cardiovascular disease, so described (I25.0)',
+    'All other forms of chronic ischemic heart disease (I20,I25.1-I25.9)',
+    'Other heart diseases (I26-I51)',
+    'Acute and subacute endocarditis (I33)',
+    'Diseases of pericardium and acute myocarditis (I30-I31,I40)',
+    'Heart failure (I50)',
+    'All other forms of heart disease (I26-I28,I34-I38,I42-I49,I51)',
+]
 INPUT_FILE = 'Wonder-cause-of-death-1999-2020.csv'
-MAKE_PLOTS = True
+MAKE_PLOTS = False
+NEOPLASMS = {
+    'Malignant neoplasms of lip, oral cavity and pharynx (C00-C14)',
+    'Malignant neoplasm of esophagus (C15)',
+    'Malignant neoplasm of stomach (C16)',
+    'Malignant neoplasms of colon, rectum and anus (C18-C21)',
+    'Malignant neoplasms of liver and intrahepatic bile ducts (C22)',
+    'Malignant neoplasm of pancreas (C25)',
+    'Malignant neoplasm of larynx (C32)',
+    'Malignant neoplasms of trachea, bronchus and lung (C33-C34)',
+    'Malignant melanoma of skin (C43)',
+    'Malignant neoplasm of breast (C50)',
+    'Malignant neoplasm of cervix uteri (C53)',
+    'Malignant neoplasms of corpus uteri and uterus, part unspecified (C54-C55)',
+    'Malignant neoplasm of ovary (C56)',
+    'Malignant neoplasm of prostate (C61)',
+    'Malignant neoplasms of kidney and renal pelvis (C64-C65)',
+    'Malignant neoplasm of bladder (C67)',
+    'Malignant neoplasms of meninges, brain and other parts of central nervous system (C70-C72)',
+    'Malignant neoplasms of lymphoid, hematopoietic and related tissue (C81-C96)',
+    'Hodgkin disease (C81)',
+    'Non-Hodgkin lymphoma (C82-C85)',
+    'Leukemia (C91-C95)',
+    'Multiple myeloma and immunoproliferative neoplasms (C88,C90)',
+    'Other and unspecified malignant neoplasms of lymphoid, hematopoietic and related tissue (C96)',
+    'All other and unspecified malignant neoplasms (C17,C23-C24,C26-C31,C37-C41,C44-C49,C51-C52,C57-C60,C62-C63,C66,C68-C69,C73-C80,C97)',
+}
 OTHER_DATA_FOLDER = './data_cdc/'
 OUTPUT_FOLDER = './plot_cdc/'
 PLOT_SIZE = 9
@@ -95,5 +137,26 @@ if __name__ == '__main__':
             savefig(format='png', fname=fname, )
             close(fig=figure)
             LOGGER.info('saved plot in %s', fname)
+
+        # now do the neoplasms
+        for start in range(0, 1):
+            neoplasms_df = df[df[COLUMNS[0]].isin(NEOPLASMS)]
+            l_var, r_var = 'Code', COLUMNS[0]
+            plot_df = melt(frame=neoplasms_df.drop(columns=[l_var]),
+                id_vars=['Year', r_var], value_name='Deaths!', ).drop(columns=['variable']).rename(
+                columns={'Deaths!': 'Deaths'})
+            if r_var == COLUMNS[0]:
+                plot_df['Cause'] = plot_df[COLUMNS[0]].apply(lambda x: CAUSES_MAP[x][:30])
+
+            figure, axes = subplots(figsize=FIGSIZE)
+            plot_result = lineplot(ax=axes, data=plot_df, estimator=None,
+                                   x='Year', y='Deaths', hue=[COLUMNS[0], 'Cause'][1])
+            fname = '{}{}_{}_lineplot.png'.format(OUTPUT_FOLDER, 'cdc_113', 'neoplasms')
+            plot_result.get_legend().set_bbox_to_anchor((1, 1))
+            tight_layout()
+            savefig(format='png', fname=fname, )
+            close(fig=figure)
+            LOGGER.info('saved plot in %s', fname)
+
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
