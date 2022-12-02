@@ -35,8 +35,14 @@ ACCIDENTS = ['Transport accidents (V01-V99,Y85)',
              'Accidental drowning and submersion (W65-W74)',
              'Accidental exposure to smoke, fire and flames (X00-X09)',
              'Accidental poisoning and exposure to noxious substances (X40-X49)',
-             'Other and unspecified nontransport accidents and their sequelae (W20-W31,W35-W64,W75-W99,X10-X39,X50-X59,Y86)'
-             ]
+             'Other and unspecified nontransport accidents and their sequelae (W20-W31,W35-W64,W75-W99,X10-X39,X50-X59,Y86)']
+ASSAULT = ['Intentional self-harm (suicide) by discharge of firearms (X72-X74)',
+           'Intentional self-harm (suicide) by other and unspecified means and their sequelae (*U03,X60-X71,X75-X84,Y87.0)',
+           'Assault (homicide) by discharge of firearms (*U01.4,X93-X95)',
+           'Assault (homicide) by other and unspecified means and their sequelae (*U01.0-*U01.3,*U01.5-*U01.9,*U02,X85-X92,X96-Y09,Y87.1)',
+           'Events of undetermined intent (Y10-Y34,Y87.2,Y89.9)',
+           'Discharge of firearms, undetermined intent (Y22-Y24)',
+           'Other and unspecified events of undetermined intent and their sequelae (Y10-Y21,Y25-Y34,Y87.2,Y89.9)', ]
 CAUSE_MAP_FILE = 'causes_map.json'
 COLUMNS = ['ICD-10 113 Cause List', 'ICD-10 113 Cause List Code', 'Year', 'Deaths', 'Population', 'crude rate',
            'log10 deaths']
@@ -151,7 +157,8 @@ if __name__ == '__main__':
             LOGGER.info('saved plot in %s', fname)
 
         # now do the breakouts
-        for target in [(HEART_DISEASE, 'heart_disease'), (NEOPLASMS, 'neoplasms'), (ACCIDENTS, 'accidents'), ]:
+        for target in [(ACCIDENTS, 'accidents'), (ASSAULT, 'suicide_assault_etc'), (HEART_DISEASE, 'heart_disease'),
+                       (NEOPLASMS, 'neoplasms'), ]:
             target_df = df[df[COLUMNS[0]].isin(target[0])]
             l_var, r_var = 'Code', COLUMNS[0]
             plot_df = melt(frame=target_df.drop(columns=[l_var]), id_vars=['Year', r_var], value_name='Deaths!', ).drop(
