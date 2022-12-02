@@ -47,7 +47,7 @@ HEART_DISEASE = [
     'All other forms of heart disease (I26-I28,I34-I38,I42-I49,I51)',
 ]
 INPUT_FILE = 'Wonder-cause-of-death-1999-2020.csv'
-MAKE_PLOTS = False
+MAKE_PLOTS = True
 NEOPLASMS = {
     'Malignant neoplasms of lip, oral cavity and pharynx (C00-C14)',
     'Malignant neoplasm of esophagus (C15)',
@@ -139,24 +139,22 @@ if __name__ == '__main__':
             LOGGER.info('saved plot in %s', fname)
 
         # now do the neoplasms
-        for start in range(0, 1):
-            neoplasms_df = df[df[COLUMNS[0]].isin(NEOPLASMS)]
+        for target in [(NEOPLASMS, 'neoplasms'), (HEART_DISEASE, 'heart_disease'), ]:
+            target_df = df[df[COLUMNS[0]].isin(target[0])]
             l_var, r_var = 'Code', COLUMNS[0]
-            plot_df = melt(frame=neoplasms_df.drop(columns=[l_var]),
-                id_vars=['Year', r_var], value_name='Deaths!', ).drop(columns=['variable']).rename(
-                columns={'Deaths!': 'Deaths'})
+            plot_df = melt(frame=target_df.drop(columns=[l_var]), id_vars=['Year', r_var], value_name='Deaths!', ).drop(
+                columns=['variable']).rename(columns={'Deaths!': 'Deaths'})
             if r_var == COLUMNS[0]:
                 plot_df['Cause'] = plot_df[COLUMNS[0]].apply(lambda x: CAUSES_MAP[x][:30])
 
             figure, axes = subplots(figsize=FIGSIZE)
             plot_result = lineplot(ax=axes, data=plot_df, estimator=None,
                                    x='Year', y='Deaths', hue=[COLUMNS[0], 'Cause'][1])
-            fname = '{}{}_{}_lineplot.png'.format(OUTPUT_FOLDER, 'cdc_113', 'neoplasms')
+            fname = '{}{}_{}_lineplot.png'.format(OUTPUT_FOLDER, 'cdc_113', target[1])
             plot_result.get_legend().set_bbox_to_anchor((1, 1))
             tight_layout()
             savefig(format='png', fname=fname, )
             close(fig=figure)
             LOGGER.info('saved plot in %s', fname)
-
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
