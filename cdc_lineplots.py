@@ -25,6 +25,18 @@ def read_url_csv(url: str, usecols: list) -> DataFrame:
     return result_df
 
 
+ACCIDENTS = ['Transport accidents (V01-V99,Y85)',
+             'Motor vehicle accidents (V02-V04,V09.0,V09.2,V12-V14,V19.0-V19.2,V19.4-V19.6,V20-V79,V80.3-V80.5,V81.0-V81.1,V82.0-V82.1,V83-V86,V87.0-V87.8,V88.0-V88.8,V89.0,V89.2)',
+             'Other land transport accidents (V01,V05-V06,V09.1,V09.3-V09.9,V10-V11,V15-V18,V19.3,V19.8-V19.9,V80.0-V80.2,V80.6-V80.9,V81.2-V81.9,V82.2-V82.9,V87.9,V88.9,V89.1,V89.3,V89.9)',
+             'Water, air and space, and other and unspecified transport accidents and their sequelae (V90-V99,Y85)',
+             'Nontransport accidents (W00-X59,Y86)',
+             'Falls (W00-W19)',
+             'Accidental discharge of firearms (W32-W34)',
+             'Accidental drowning and submersion (W65-W74)',
+             'Accidental exposure to smoke, fire and flames (X00-X09)',
+             'Accidental poisoning and exposure to noxious substances (X40-X49)',
+             'Other and unspecified nontransport accidents and their sequelae (W20-W31,W35-W64,W75-W99,X10-X39,X50-X59,Y86)'
+             ]
 CAUSE_MAP_FILE = 'causes_map.json'
 COLUMNS = ['ICD-10 113 Cause List', 'ICD-10 113 Cause List Code', 'Year', 'Deaths', 'Population', 'crude rate',
            'log10 deaths']
@@ -138,8 +150,8 @@ if __name__ == '__main__':
             close(fig=figure)
             LOGGER.info('saved plot in %s', fname)
 
-        # now do the neoplasms
-        for target in [(NEOPLASMS, 'neoplasms'), (HEART_DISEASE, 'heart_disease'), ]:
+        # now do the breakouts
+        for target in [(HEART_DISEASE, 'heart_disease'), (NEOPLASMS, 'neoplasms'), (ACCIDENTS, 'accidents'), ]:
             target_df = df[df[COLUMNS[0]].isin(target[0])]
             l_var, r_var = 'Code', COLUMNS[0]
             plot_df = melt(frame=target_df.drop(columns=[l_var]), id_vars=['Year', r_var], value_name='Deaths!', ).drop(
