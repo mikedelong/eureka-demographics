@@ -1,15 +1,6 @@
 """
 Load and parse Excel data
 """
-from logging import INFO
-from logging import basicConfig
-from logging import getLogger
-from pathlib import Path
-
-from arrow import now
-
-from common import COLUMNS
-from common import read_excel_dataframe
 
 from logging import INFO
 from logging import basicConfig
@@ -70,7 +61,9 @@ if __name__ == '__main__':
 
         figure_lineplot, axes_lineplot = subplots()
         result_lineplot = lineplot(data=regions_df, x='Year', y='Crude Death', hue='Region', )
-        savefig(fname=OUTPUT_FOLDER + '{}_lineplot.png'.format(continent), format='png')
+        fname = OUTPUT_FOLDER + '{}_lineplot.png'.format(continent)
+        LOGGER.info('writing to %s', fname)
+        savefig(fname=fname, format='png')
         close(fig=figure_lineplot)
 
         countries_df = df[df['Location code'].isin(country_codes)][
@@ -97,7 +90,9 @@ if __name__ == '__main__':
         result_scatterplot = lmplot(data=plot_df, x=mean, y=y_var, hue='hue', legend=False, aspect=2, )
         label_point(x=plot_df[mean], y=plot_df[y_var], val=plot_df['country'], ax=gca())
         tight_layout()
-        savefig(fname=OUTPUT_FOLDER + '{}_mean_{}_scatterplot.png'.format(continent, stddev), format='png')
+        fname = OUTPUT_FOLDER + '{}_mean_{}_scatterplot.png'.format(continent, stddev)
+        LOGGER.info('writing to %s', fname)
+        savefig(fname=fname, format='png')
         close(fig=figure_scatterplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
