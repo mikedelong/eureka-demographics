@@ -24,10 +24,11 @@ from common import read_excel_dataframe
 
 CONTINENT_DATA = {
     'africa': 903,
+    'asia': 935,
 }
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
-OUTPUT_FOLDER = './plot/'
+OUTPUT_FOLDER = './plot_crude/'
 SAVE_WORLD_DATA = False
 SEABORN_STYLE = 'darkgrid'
 TO_REPLACE = {}
