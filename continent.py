@@ -90,7 +90,7 @@ if __name__ == '__main__':
         result_scatterplot = lmplot(data=plot_df, x=mean, y=y_var, hue='hue', legend=False, aspect=2, )
         label_point(x=plot_df[mean], y=plot_df[y_var], val=plot_df['country'], ax=gca())
         tight_layout()
-        fname = OUTPUT_FOLDER + '{}_mean_{}_scatterplot.png'.format(continent, stddev)
+        fname = OUTPUT_FOLDER + '{}_mean_{}_scatterplot.png'.format(continent, stddev.replace(' ', '_'))
         LOGGER.info('writing to %s', fname)
         savefig(fname=fname, format='png')
         close(fig=figure_scatterplot)
