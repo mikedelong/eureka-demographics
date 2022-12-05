@@ -25,6 +25,7 @@ from common import read_excel_dataframe
 CONTINENT_DATA = {
     'africa': 903,
     'asia': 935,
+    'europe': 908
 }
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
@@ -47,6 +48,7 @@ if __name__ == '__main__':
     df = read_excel_dataframe(io=data_file, header=16, usecols=COLUMNS)
     LOGGER.info('loaded %d rows from %s', len(df), data_file)
     df = df.drop(columns=['Index'])
+    df = df[df['Region, subregion, country or area *'] != 'Holy See']
 
     set_style(style=SEABORN_STYLE)
     for continent, location_code in CONTINENT_DATA.items():
