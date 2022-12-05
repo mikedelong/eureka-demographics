@@ -46,6 +46,7 @@ if __name__ == '__main__':
     data_file = DATA_FOLDER + INPUT_FILE
     df = read_excel_dataframe(io=data_file, header=16, usecols=COLUMNS)
     LOGGER.info('loaded %d rows from %s', len(df), data_file)
+    df = df.drop(columns=['Index'])
 
     set_style(style=SEABORN_STYLE)
     for continent, location_code in CONTINENT_DATA.items():
