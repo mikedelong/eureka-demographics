@@ -25,7 +25,8 @@ from common import read_excel_dataframe
 CONTINENT_DATA = {
     'africa': 903,
     'asia': 935,
-    'europe': 908
+    'europe': 908,
+    'north america': 905,
 }
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
@@ -65,7 +66,7 @@ if __name__ == '__main__':
 
         figure_lineplot, axes_lineplot = subplots()
         result_lineplot = lineplot(data=regions_df, x='Year', y='Crude Death', hue='Region', )
-        fname = OUTPUT_FOLDER + '{}_lineplot.png'.format(continent)
+        fname = OUTPUT_FOLDER + '{}_lineplot.png'.format(continent.replace(' ', '_'))
         LOGGER.info('writing to %s', fname)
         savefig(fname=fname, format='png')
         close(fig=figure_lineplot)
@@ -94,7 +95,7 @@ if __name__ == '__main__':
         result_scatterplot = lmplot(data=plot_df, x=mean, y=y_var, hue='hue', legend=False, aspect=2, )
         label_point(x=plot_df[mean], y=plot_df[y_var], val=plot_df['country'], ax=gca())
         tight_layout()
-        fname = OUTPUT_FOLDER + '{}_mean_{}_scatterplot.png'.format(continent, stddev.replace(' ', '_'))
+        fname = OUTPUT_FOLDER + '{}_mean_{}_scatterplot.png'.format(continent.replace(' ', '_'), stddev.replace(' ', '_'))
         LOGGER.info('writing to %s', fname)
         savefig(fname=fname, format='png')
         close(fig=figure_scatterplot)
