@@ -28,7 +28,7 @@ CONTINENT_DATA = {
     'europe': 908,
     'latin america': 904,
     'north america': 905,
-    # 'oceania': 909,
+    'oceania': 909,
 }
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
@@ -56,7 +56,8 @@ if __name__ == '__main__':
     set_style(style=SEABORN_STYLE)
     for continent, location_code in CONTINENT_DATA.items():
         region_codes = df[df['Parent code'] == location_code]['Location code'].unique()
-        country_codes = df[df['Parent code'].isin(region_codes)]['Location code'].unique()
+        country_codes = df[df['Parent code'].isin(region_codes)][
+            'Location code'].unique() if continent != 'north america' else region_codes
 
         regions_df = df[(df['Location code'].isin(region_codes)) | (df['Location code'] == location_code)][
             ['Year', 'Region, subregion, country or area *',
@@ -97,7 +98,8 @@ if __name__ == '__main__':
         result_scatterplot = lmplot(data=plot_df, x=mean, y=y_var, hue='hue', legend=False, aspect=2, )
         label_point(x=plot_df[mean], y=plot_df[y_var], val=plot_df['country'], ax=gca())
         tight_layout()
-        fname = OUTPUT_FOLDER + '{}_mean_{}_scatterplot.png'.format(continent.replace(' ', '_'), stddev.replace(' ', '_'))
+        fname = OUTPUT_FOLDER + '{}_mean_{}_scatterplot.png'.format(continent.replace(' ', '_'),
+                                                                    stddev.replace(' ', '_'))
         LOGGER.info('writing to %s', fname)
         savefig(fname=fname, format='png')
         close(fig=figure_scatterplot)
