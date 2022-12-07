@@ -26,7 +26,9 @@ CONTINENT_DATA = {
     'africa': 903,
     'asia': 935,
     'europe': 908,
+    'latin america': 904,
     'north america': 905,
+    # 'oceania': 909,
 }
 DATA_FOLDER = './data/'
 INPUT_FILE = 'WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1.xlsx'
