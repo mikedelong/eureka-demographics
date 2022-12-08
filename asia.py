@@ -83,9 +83,6 @@ if __name__ == '__main__':
     LOGGER.info('loaded %d rows from %s', len(df), data_file)
 
     # first get the Asian subregions
-    t0 = df[df['Parent code'] == 935]['Location code'].unique()
-    t1 = df[df['Parent code'].isin(t0)]['Location code'].unique()
-
     asia_subregion_df = df[df['Parent code'] == 935][[
         'Year', 'Region, subregion, country or area *',
         'Parent code',
