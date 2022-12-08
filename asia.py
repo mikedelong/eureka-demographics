@@ -82,24 +82,6 @@ if __name__ == '__main__':
     df = read_excel_dataframe(io=data_file, header=16, usecols=COLUMNS)
     LOGGER.info('loaded %d rows from %s', len(df), data_file)
 
-    regions_df = df[df['Type'] == 'Region'][['Year', 'Region, subregion, country or area *',
-                                             'Natural Change, Births minus Deaths (thousands)',
-                                             'Rate of Natural Change (per 1,000 population)',
-                                             'Crude Death Rate (deaths per 1,000 population)',
-                                             ]].rename(columns={
-        'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
-        'Region, subregion, country or area *': 'Region',
-    })
-    regions_df['Region'] = regions_df['Region'].replace({'LATIN AMERICA AND THE CARIBBEAN': 'LATIN AMERICA'})
-    set_style(style=SEABORN_STYLE)
-
-    figure_, axes_ = subplots()
-    _ = lineplot(ax=axes_, data=regions_df, x='Year', y='Crude Death', hue='Region')
-    fname_ = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, 'region_crude_death')
-    savefig(format='png', fname=fname_, )
-    close(fig=figure_)
-    LOGGER.info('saved plot in %s', fname_)
-
     # first get the Asian subregions
     t0 = df[df['Parent code'] == 935]['Location code'].unique()
     t1 = df[df['Parent code'].isin(t0)]['Location code'].unique()
@@ -114,6 +96,7 @@ if __name__ == '__main__':
         'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
         'Region, subregion, country or area *': 'Region',
     })
+    set_style(style=SEABORN_STYLE)
     figure_, axes_ = subplots()
     _ = lineplot(ax=axes_, data=asia_subregion_df, x='Year', y='Crude Death', hue='Region')
     fname_ = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, 'asia_subregion_crude_death')
