@@ -121,4 +121,24 @@ if __name__ == '__main__':
         savefig(fname=fname, format='png')
         close(fig=figure_scatterplot)
 
+        subregion_df = df[df['Parent code'] == location_code][[
+            'Year', 'Region, subregion, country or area *',
+            'Parent code',
+            'Natural Change, Births minus Deaths (thousands)',
+            'Rate of Natural Change (per 1,000 population)',
+            'Crude Death Rate (deaths per 1,000 population)',
+        ]].rename(columns={
+            'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+            'Region, subregion, country or area *': 'Region',
+        })
+        del axes_lineplot
+        del figure_lineplot
+        del result_lineplot
+        figure_lineplot, axes_lineplot = subplots()
+        result_lineplot = lineplot(ax=axes_lineplot, data=subregion_df, x='Year', y='Crude Death', hue='Region')
+        fname_lineplot = '{}{}_subregion_lineplot.png'.format(OUTPUT_FOLDER, continent.replace(' ', '_'),)
+        savefig(format='png', fname=fname_lineplot, )
+        close(fig=figure_lineplot)
+        LOGGER.info('saved plot in %s', fname_lineplot)
+
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
