@@ -82,25 +82,6 @@ if __name__ == '__main__':
     df = read_excel_dataframe(io=data_file, header=16, usecols=COLUMNS)
     LOGGER.info('loaded %d rows from %s', len(df), data_file)
 
-    # first get the Asian subregions
-    asia_subregion_df = df[df['Parent code'] == 935][[
-        'Year', 'Region, subregion, country or area *',
-        'Parent code',
-        'Natural Change, Births minus Deaths (thousands)',
-        'Rate of Natural Change (per 1,000 population)',
-        'Crude Death Rate (deaths per 1,000 population)',
-    ]].rename(columns={
-        'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
-        'Region, subregion, country or area *': 'Region',
-    })
-    set_style(style=SEABORN_STYLE)
-    figure_, axes_ = subplots()
-    _ = lineplot(ax=axes_, data=asia_subregion_df, x='Year', y='Crude Death', hue='Region')
-    fname_ = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, 'asia_subregion_crude_death')
-    savefig(format='png', fname=fname_, )
-    close(fig=figure_)
-    LOGGER.info('saved plot in %s', fname_)
-
     # Parent code 906
     eastern_asia_df = df[df['Parent code'] == 906][[
         'Year', 'Region, subregion, country or area *',
