@@ -67,9 +67,9 @@ if __name__ == '__main__':
     figure_regions, axes_regions = subplots()
     result_regions = lineplot(ax=axes_regions, data=regions_df, x='Year', y='Crude Death', hue='Region')
     fname_regions = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, 'region_crude_death')
+    LOGGER.info('writing to %s', fname_regions)
     savefig(format='png', fname=fname_regions, )
     close(fig=figure_regions)
-    LOGGER.info('saved plot in %s', fname_regions)
 
     for continent, location_code in CONTINENT_DATA.items():
         region_codes = df[df['Parent code'] == location_code]['Location code'].unique()
@@ -137,8 +137,8 @@ if __name__ == '__main__':
         figure_lineplot, axes_lineplot = subplots()
         result_lineplot = lineplot(ax=axes_lineplot, data=subregion_df, x='Year', y='Crude Death', hue='Region')
         fname_lineplot = '{}{}_subregion_lineplot.png'.format(OUTPUT_FOLDER, continent.replace(' ', '_'),)
+        LOGGER.info('writing to %s', fname_lineplot)
         savefig(format='png', fname=fname_lineplot, )
         close(fig=figure_lineplot)
-        LOGGER.info('saved plot in %s', fname_lineplot)
 
     LOGGER.info('total time: {:5.2f}s'.format((now() - TIME_START).total_seconds()))
