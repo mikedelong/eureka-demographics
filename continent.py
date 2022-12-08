@@ -53,6 +53,22 @@ if __name__ == '__main__':
     df = df.drop(columns=['Index'])
     df = df[df['Region, subregion, country or area *'] != 'Holy See']
 
+    regions_df = df[df['Type'] == 'Region'][['Year', 'Region, subregion, country or area *',
+                                             'Natural Change, Births minus Deaths (thousands)',
+                                             'Rate of Natural Change (per 1,000 population)',
+                                             'Crude Death Rate (deaths per 1,000 population)',
+                                             ]].rename(columns={
+        'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+        'Region, subregion, country or area *': 'Region',
+    })
+    regions_df['Region'] = regions_df['Region'].replace({'LATIN AMERICA AND THE CARIBBEAN': 'LATIN AMERICA'})
+    figure_regions, axes_regions = subplots()
+    result_regions = lineplot(ax=axes_regions, data=regions_df, x='Year', y='Crude Death', hue='Region')
+    fname_regions = '{}{}_lineplot.png'.format(OUTPUT_FOLDER, 'region_crude_death')
+    savefig(format='png', fname=fname_regions, )
+    close(fig=figure_regions)
+    LOGGER.info('saved plot in %s', fname_regions)
+
     set_style(style=SEABORN_STYLE)
     for continent, location_code in CONTINENT_DATA.items():
         region_codes = df[df['Parent code'] == location_code]['Location code'].unique()
