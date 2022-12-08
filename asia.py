@@ -82,6 +82,8 @@ if __name__ == '__main__':
     df = read_excel_dataframe(io=data_file, header=16, usecols=COLUMNS)
     LOGGER.info('loaded %d rows from %s', len(df), data_file)
 
+    set_style(style=SEABORN_STYLE)
+
     # Parent code 906
     eastern_asia_df = df[df['Parent code'] == 906][[
         'Year', 'Region, subregion, country or area *',
