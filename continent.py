@@ -88,9 +88,9 @@ if __name__ == '__main__':
 
         figure_lineplot, axes_lineplot = subplots()
         result_lineplot = lineplot(data=regions_df, x='Year', y='Crude Death', hue='Region', )
-        fname = OUTPUT_FOLDER + '{}_lineplot.png'.format(continent.replace(' ', '_'))
-        LOGGER.info('writing to %s', fname)
-        savefig(fname=fname, format='png')
+        fname_lineplot = OUTPUT_FOLDER + '{}_lineplot.png'.format(continent.replace(' ', '_'))
+        LOGGER.info('writing to %s', fname_lineplot)
+        savefig(fname=fname_lineplot, format='png')
         close(fig=figure_lineplot)
 
         countries_df = df[df['Location code'].isin(country_codes)][
@@ -117,10 +117,10 @@ if __name__ == '__main__':
         result_scatterplot = lmplot(data=plot_df, x=mean, y=y_var, hue='hue', legend=False, aspect=2, )
         label_point(x=plot_df[mean], y=plot_df[y_var], val=plot_df['country'], ax=gca())
         tight_layout()
-        fname = OUTPUT_FOLDER + '{}_mean_{}_scatterplot.png'.format(continent.replace(' ', '_'),
-                                                                    stddev.replace(' ', '_'))
-        LOGGER.info('writing to %s', fname)
-        savefig(fname=fname, format='png')
+        fname_scatterplot = OUTPUT_FOLDER + '{}_mean_{}_scatterplot.png'.format(continent.replace(' ', '_'),
+                                                                                stddev.replace(' ', '_'))
+        LOGGER.info('writing to %s', fname_scatterplot)
+        savefig(fname=fname_scatterplot, format='png')
         close(fig=figure_scatterplot)
 
         subregion_df = df[df['Parent code'] == location_code][[
@@ -138,7 +138,7 @@ if __name__ == '__main__':
         del result_lineplot
         figure_lineplot, axes_lineplot = subplots()
         result_lineplot = lineplot(ax=axes_lineplot, data=subregion_df, x='Year', y='Crude Death', hue='Region')
-        fname_lineplot = '{}{}_subregion_lineplot.png'.format(OUTPUT_FOLDER, continent.replace(' ', '_'),)
+        fname_lineplot = '{}{}_subregion_lineplot.png'.format(OUTPUT_FOLDER, continent.replace(' ', '_'), )
         LOGGER.info('writing to %s', fname_lineplot)
         savefig(format='png', fname=fname_lineplot, )
         close(fig=figure_lineplot)
