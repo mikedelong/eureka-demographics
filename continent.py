@@ -55,11 +55,11 @@ if __name__ == '__main__':
     df = df.drop(columns=['Index'])
     df = df[df['Region, subregion, country or area *'] != 'Holy See']
 
-    regions_df = df[df['Type'] == 'Region'][['Year', 'Region, subregion, country or area *',
-                                             'Natural Change, Births minus Deaths (thousands)',
-                                             'Rate of Natural Change (per 1,000 population)',
-                                             'Crude Death Rate (deaths per 1,000 population)',
-                                             ]].rename(columns={
+    columns_regions = ['Year', 'Region, subregion, country or area *',
+                       'Natural Change, Births minus Deaths (thousands)',
+                       'Rate of Natural Change (per 1,000 population)',
+                       'Crude Death Rate (deaths per 1,000 population)', ]
+    regions_df = df[df['Type'] == 'Region'][columns_regions].rename(columns={
         'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
         'Region, subregion, country or area *': 'Region',
     })
@@ -81,10 +81,8 @@ if __name__ == '__main__':
         regions_df = df[(df['Location code'].isin(region_codes)) | (df['Location code'] == location_code)][
             ['Year', 'Region, subregion, country or area *',
              'Crude Death Rate (deaths per 1,000 population)',
-             ]].rename(columns={
-            'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
-            'Region, subregion, country or area *': 'Region',
-        })
+             ]].rename(columns={'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+                                'Region, subregion, country or area *': 'Region', })
 
         figure_lineplot, axes_lineplot = subplots()
         result_lineplot = lineplot(data=regions_df, x='Year', y='Crude Death', hue='Region', )
@@ -96,10 +94,8 @@ if __name__ == '__main__':
         countries_df = df[df['Location code'].isin(country_codes)][
             ['Year', 'Region, subregion, country or area *',
              'Crude Death Rate (deaths per 1,000 population)',
-             ]].rename(columns={
-            'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
-            'Region, subregion, country or area *': 'Region',
-        })
+             ]].rename(columns={'Crude Death Rate (deaths per 1,000 population)': 'Crude Death',
+                                'Region, subregion, country or area *': 'Region', })
         deviations = {region: countries_df[countries_df['Region'] == region]['Crude Death'].std() for region in
                       countries_df['Region'].unique()}
         deviation_df = DataFrame(data={'country': list(deviations.keys()), 'std dev': list(deviations.values())})
